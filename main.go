@@ -7,6 +7,7 @@ import (
 
 	"cci_grapher/config"
 	"cci_grapher/cubecounterimage"
+	"cci_grapher/db"
 	"cci_grapher/logging"
 
 	"github.com/bwmarrin/discordgo"
@@ -34,11 +35,17 @@ func Run() {
 	<-sc
 
 	logging.INFO("Shutting down", "cci_grapher.run")
+	db.Shutdown()
 	bot.Close()
 }
 
 func main() {
 	config.LoadConfig("./config.json")
 	logging.SetUpLogging(logging.LoggingLevel(config.Logging))
+
+	if !db.Init() {
+		logging.FATAL("Error while setting up databases. Shutdown", "main")
+	}
+
 	Run()
 }

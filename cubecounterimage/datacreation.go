@@ -1,9 +1,8 @@
 package cubecounterimage
 
 import (
-	"cci_grapher/config"
+	"cci_grapher/db"
 	"cci_grapher/logging"
-	"database/sql"
 	"fmt"
 	"strings"
 	"time"
@@ -12,12 +11,7 @@ import (
 )
 
 func processDB(channelID string, ccB *cubeCounterData, ccr cubeCounterRequest, userGetter map[string]string) {
-	db, e := sql.Open("sqlite3", config.CC.CubePath+channelID+".sql")
-	if e != nil {
-		logging.ERROR("An error occurred trying to open the database for channel with id: "+channelID+"\n"+e.Error(), "CubeCounter.createImg")
-		return
-	}
-	defer db.Close()
+	db := db.CHANNELDBS[channelID]
 
 	now := time.Now()
 	rows, e := db.Query("SELECT user_id,time,roles FROM msgs WHERE time > $1 AND time < $2;", ccr.startDate, ccr.endDate)
@@ -156,18 +150,11 @@ func processDB(channelID string, ccB *cubeCounterData, ccr cubeCounterRequest, u
 	logging.LOGGING(fmt.Sprintf("Looping over user roles took: %v", roleDistributionTimer1), "CCI.processDB")
 	logging.LOGGING(fmt.Sprintf("Checking special roles took: %v", roleDistributionTimer1), "CCI.processDB")
 
-
 }
 
 func createData(ccR cubeCounterRequest) *cubeCounterData {
-	usernamesDB, e := sql.Open("sqlite3", config.CC.CubePath+"usernames.sql")
-	if e != nil {
-		logging.ERROR("An error occurred trying to open the username database."+e.Error(), "CubeCounter.createImg")
-		return &cubeCounterData{}
-	}
-	defer usernamesDB.Close()
-
-	data, e := usernamesDB.Query("SELECT user_id, name FROM usernames;")
+	now := time.Now()
+	data, e := db.USERNAMEDB.Query("SELECT user_id, name FROM usernames;")
 	if e != nil {
 		logging.ERROR("An error occurred trying to prepare the username database."+e.Error(), "CubeCounter.createImg")
 		return &cubeCounterData{}
@@ -180,7 +167,9 @@ func createData(ccR cubeCounterRequest) *cubeCounterData {
 		data.Scan(&user_id, &username)
 		usernames[user_id] = username
 	}
+	logging.LOGGING(fmt.Sprintf("Making usernames map took: %v", time.Since(now)), "CCI.createData")
 
+	now = time.Now()
 	var ccB = cubeCounterData{
 		totalMessageCount: 0,
 		totalMessages:     make(map[string]int),
@@ -196,10 +185,13 @@ func createData(ccR cubeCounterRequest) *cubeCounterData {
 	for hour := 0; hour < 24; hour++ {
 		ccB.hourlyActivity[hour] = 0
 	}
+	logging.LOGGING(fmt.Sprintf("Making cubeCounterData took: %v", time.Since(now)), "CCI.createData")
 
+	now = time.Now()
 	for _, c := range ccR.channelIDs {
 		processDB(c, &ccB, ccR, usernames)
 	}
+	logging.LOGGING(fmt.Sprintf("processDB took: %v", time.Since(now)), "CCI.createData")
 
 	return &ccB
 }
