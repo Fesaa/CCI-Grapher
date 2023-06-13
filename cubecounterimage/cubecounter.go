@@ -67,13 +67,25 @@ func CCI(s *discordgo.Session, e *discordgo.MessageCreate) {
 		endDate:    EndDate,
 	}
 	var ccB *cubeCounterData = createData(ccR)
+	stop1 := time.Now()
+	logging.LOGGING(fmt.Sprintf("createData took: %v", stop1.Sub(start)), "CCI")
+
 	var imgData imageData = toImageData(ccB)
+	stop2 := time.Now()
+	logging.LOGGING(fmt.Sprintf("toImageData took: %v", stop2.Sub(stop1)), "CCI")
+
 	var imgArray []image.Image = toImages(imgData)
+	stop3 := time.Now()
+	logging.LOGGING(fmt.Sprintf("toImages took: %v", stop3.Sub(stop2)), "CCI")
 	if imgArray == nil {
 		logging.ERROR("toImages returned nil. Cannot proceed", "cc._cci")
 		return
 	}
+
 	var finalImage image.Image = imageMerge(imgArray, ccR)
+	stop4 := time.Now()
+	logging.LOGGING(fmt.Sprintf("imageMerge took: %v", stop4.Sub(stop3)), "CCI")
+
 	var b bytes.Buffer
 	if err := png.Encode(&b, finalImage); err != nil {
 		logging.ERROR("An error occured trying to convert the image to a reader:\n"+err.Error(), "cc._cci")

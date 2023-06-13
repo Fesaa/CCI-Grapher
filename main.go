@@ -39,6 +39,6 @@ func Run() {
 
 func main() {
 	config.LoadConfig("./config.json")
-	logging.SetUpLogging(logging.LoggingLevel(0))
+	logging.SetUpLogging(logging.LoggingLevel(config.Logging))
 	Run()
 }

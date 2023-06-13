@@ -6,10 +6,9 @@ import (
 	"log"
 )
 
-
 type ConfigDiscord struct {
-	Token         string               `json:"token"`
-	ApplicationID string               `json:"application_id"`
+	Token         string `json:"token"`
+	ApplicationID string `json:"application_id"`
 }
 type ConfigCC struct {
 	CubePath   string   `json:"cube_path"`
@@ -17,12 +16,14 @@ type ConfigCC struct {
 }
 
 type Config struct {
-	Discord     ConfigDiscord     `json:"discord"`
-	CC          ConfigCC          `json:"cc"`
+	Discord ConfigDiscord `json:"discord"`
+	CC      ConfigCC      `json:"cc"`
+	Logging int           `json:"logging"`
 }
 
 var Discord ConfigDiscord
 var CC ConfigCC
+var Logging int
 
 func LoadConfig(path string) {
 	file, e := ioutil.ReadFile(path)
@@ -39,4 +40,5 @@ func LoadConfig(path string) {
 
 	Discord = c.Discord
 	CC = c.CC
+	Logging = c.Logging
 }
