@@ -46,6 +46,7 @@ func CCI(s *discordgo.Session, e *discordgo.MessageCreate) {
 		}
 	}
 
+	fmt.Printf("%d\n%v", index, parts)
 	if len(parts) > index {
 		t, err := time.Parse(dataParse, parts[index])
 		if err == nil {
