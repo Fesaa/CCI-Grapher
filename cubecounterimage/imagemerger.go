@@ -7,7 +7,7 @@ import (
 
 	"github.com/wcharczuk/go-chart/v2"
 	"golang.org/x/image/font"
-	"golang.org/x/image/font/basicfont"
+	"golang.org/x/image/font/inconsolata"
 	"golang.org/x/image/math/fixed"
 )
 
@@ -29,19 +29,19 @@ func imageMerge(imgs []image.Image, ccr cubeCounterRequest) image.Image {
 	draw.Draw(rgba, rrd, rd, image.Point{0, 0}, draw.Src)
 	draw.Draw(rgba, rha, ha, image.Point{0, 0}, draw.Src)
 
-	addLabel(rgba, tm.Bounds().Dx(), 50, titleString)
+	addLabel(rgba, 85*tm.Bounds().Dx()/100, 20, titleString)
 	return rgba
 }
 
 func addLabel(img *image.RGBA, x, y int, label string) {
-    col := chart.ColorBlack
-    point := fixed.Point26_6{X: fixed.I(x), Y: fixed.I(y)}
+	col := chart.ColorBlack
+	point := fixed.Point26_6{X: fixed.I(x), Y: fixed.I(y)}
 
-    d := &font.Drawer{
-        Dst:  img,
-        Src:  image.NewUniform(col),
-        Face: basicfont.Face7x13,
-        Dot:  point,
-    }
-    d.DrawString(label)
+	d := &font.Drawer{
+		Dst:  img,
+		Src:  image.NewUniform(col),
+		Face: inconsolata.Bold8x16,
+		Dot:  point,
+	}
+	d.DrawString(label)
 }
