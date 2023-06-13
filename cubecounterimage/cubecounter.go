@@ -31,7 +31,7 @@ func CCI(s *discordgo.Session, e *discordgo.MessageCreate) {
 	var defaultChannelIDs bool = true
 	var StartDate time.Time = time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC).Add(time.Hour * 24 * -7)
 	var EndDate time.Time = time.Now()
-	var index int = 1
+	var index int = 0
 
 	for i, p := range parts {
 		if utils.InStringArray(config.CC.ChannelIDs, p) {
@@ -71,7 +71,7 @@ func CCI(s *discordgo.Session, e *discordgo.MessageCreate) {
 	var imgArray []image.Image = toImages(imgData)
 	if imgArray == nil {
 		logging.ERROR("toImages returned nil. Cannot proceed", "cc._cci")
-		logging.INFO( fmt.Sprintf("%+v\n%+v\n%+v\n%+v", ccR, ccB, ccR.startDate.String(), ccR.endDate.String()), "cc._cci")
+		logging.INFO(fmt.Sprintf("%+v\n%+v\n%+v\n%+v", ccR, ccB, ccR.startDate.String(), ccR.endDate.String()), "cc._cci")
 		return
 	}
 	var finalImage image.Image = imageMerge(imgArray)
