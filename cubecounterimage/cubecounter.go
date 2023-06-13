@@ -73,7 +73,7 @@ func CCI(s *discordgo.Session, e *discordgo.MessageCreate) {
 		logging.ERROR("toImages returned nil. Cannot proceed", "cc._cci")
 		return
 	}
-	var finalImage image.Image = imageMerge(imgArray)
+	var finalImage image.Image = imageMerge(imgArray, ccR)
 	var b bytes.Buffer
 	if err := png.Encode(&b, finalImage); err != nil {
 		logging.ERROR("An error occured trying to convert the image to a reader:\n"+err.Error(), "cc._cci")
