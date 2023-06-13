@@ -4,6 +4,7 @@ import (
 	"cci_grapher/config"
 	"cci_grapher/logging"
 	"database/sql"
+	"fmt"
 	"strings"
 	"time"
 
@@ -31,7 +32,6 @@ func processDB(channelID string, ccB *cubeCounterData, ccr cubeCounterRequest, u
 
 	for rows.Next() {
 		var userID string
-		var userName string = userGetter[userID]
 		var tString string
 		var rolesString string
 		rows.Scan(&userID, &tString, &rolesString)
@@ -41,6 +41,8 @@ func processDB(channelID string, ccB *cubeCounterData, ccr cubeCounterRequest, u
 			logging.ERROR("Error parsing time;\n "+err.Error(), "CubeCounter.createImg")
 			continue
 		}
+
+		var userName string = userGetter[userID]
 
 		msg := MessageEntry{
 			Date:     t,
@@ -171,6 +173,8 @@ func createData(ccR cubeCounterRequest) *cubeCounterData {
 	for _, c := range ccR.channelIDs {
 		processDB(c, &ccB, ccR, usernames)
 	}
+
+	fmt.Println(ccB)
 
 	return &ccB
 }
