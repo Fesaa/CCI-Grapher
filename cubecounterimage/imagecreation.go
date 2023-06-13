@@ -42,6 +42,7 @@ func toImages(iD imageData) []image.Image {
 	totalMessagesImage, err := totalMessagesCollector.Image()
 	if err != nil {
 		logging.ERROR("Could not collect Total Messages chart:\n"+err.Error(), "cubecounterimage.toImages")
+		return nil
 	}
 
 	// Consecutive time
@@ -63,6 +64,7 @@ func toImages(iD imageData) []image.Image {
 	consecutiveTimeImage, err := consecutiveTimeCollector.Image()
 	if err != nil {
 		logging.ERROR("Could not collect Consecutive Time chart:\n"+err.Error(), "cubecounterimage.toImages")
+		return nil
 	}
 
 	// Role distribution
@@ -84,6 +86,7 @@ func toImages(iD imageData) []image.Image {
 	roleDistributionImage, err := roleDistributionCollector.Image()
 	if err != nil {
 		logging.ERROR("Could not collect Role Distribution chart:\n"+err.Error(), "cubecounterimage.toImages")
+		return nil
 	}
 
 	// Hourly Activity
@@ -114,6 +117,7 @@ func toImages(iD imageData) []image.Image {
 	hourlyActivityImage, err := hourlyActivityCollector.Image()
 	if err != nil {
 		logging.ERROR("Could not collect Hourly Activity chart:\n"+err.Error(), "cubecounterimage.toImages")
+		return nil
 	}
 
 	imgs = append(imgs, totalMessagesImage)

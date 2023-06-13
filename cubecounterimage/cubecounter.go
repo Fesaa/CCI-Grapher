@@ -69,6 +69,11 @@ func CCI(s *discordgo.Session, e *discordgo.MessageCreate) {
 	var ccB *cubeCounterData = createData(ccR)
 	var imgData imageData = toImageData(ccB)
 	var imgArray []image.Image = toImages(imgData)
+	if imgArray == nil {
+		logging.ERROR("toImages returned nil. Cannot proceed", "cc._cci")
+		logging.INFO( fmt.Sprintf("%+v\n%+v\n%+v\n%+v", ccR, ccB, ccR.startDate.String(), ccR.endDate.String()), "cc._cci")
+		return
+	}
 	var finalImage image.Image = imageMerge(imgArray)
 	var b bytes.Buffer
 	if err := png.Encode(&b, finalImage); err != nil {
