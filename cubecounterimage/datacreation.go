@@ -19,14 +19,13 @@ func processDB(channelID string, ccB *cubeCounterData, ccr cubeCounterRequest, u
 	}
 	defer db.Close()
 
-	//ccr.startDate = ccr.startDate.Add(time.Hour * -24)
-	//ccr.endDate = ccr.endDate.Add(time.Hour * 24)
-
+	now := time.Now()
 	rows, e := db.Query("SELECT user_id,time,roles FROM msgs WHERE time > $1 AND time < $2;", ccr.startDate, ccr.endDate)
 	if e != nil {
 		logging.ERROR("An error occurred trying to fetch data from "+channelID+"\n"+e.Error(), "CubeCounter.createImg")
 		return
 	}
+	logging.LOGGING(fmt.Sprintf("Getting data from db took: %v", time.Since(now)), "CCI.processDB")
 
 	var active_members = map[string]ActiveMembersStruct{}
 
@@ -59,7 +58,7 @@ func processDB(channelID string, ccB *cubeCounterData, ccr cubeCounterRequest, u
 		ccB.totalMessageCount = ccB.totalMessageCount + 1
 
 		// Adding to totalMessages
-		now := time.Now()
+		now = time.Now()
 		if _, ok := ccB.totalMessages[msg.AuthorID]; ok {
 			ccB.totalMessages[msg.AuthorID] = ccB.totalMessages[msg.AuthorID] + 1
 		} else {
