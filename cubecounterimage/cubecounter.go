@@ -46,21 +46,18 @@ func CCI(s *discordgo.Session, e *discordgo.MessageCreate) {
 		}
 	}
 
-	if len(parts) == index+1 {
-		t, err := time.Parse(dataParse, parts[index])
-		if err == nil {
-			EndDate = t
-		}
-
-	} else if len(parts) >= index+2 {
+	if len(parts) > index {
 		t, err := time.Parse(dataParse, parts[index])
 		if err == nil {
 			StartDate = t
 		}
-		t2, err := time.Parse(dataParse, parts[index+1])
+	}
+	if len(parts) > index+1 {
+		t, err := time.Parse(dataParse, parts[index+1])
 		if err == nil {
-			EndDate = t2
+			EndDate = t
 		}
+
 	}
 
 	var start time.Time = time.Now()
