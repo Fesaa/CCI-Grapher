@@ -10,7 +10,7 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-func processDB(channelID string, ccB *cubeCounterData, ccr cubeCounterRequest, userGetter *sql.Stmt) {
+func processDB(channelID string, ccB *cubeCounterData, ccr cubeCounterRequest, userGetter map[string]string) {
 	db, e := sql.Open("sqlite3", config.CC.CubePath+channelID+".sql")
 	if e != nil {
 		logging.ERROR("An error occurred trying to open the database for channel with id: "+channelID+"\n"+e.Error(), "CubeCounter.createImg")
@@ -31,7 +31,7 @@ func processDB(channelID string, ccB *cubeCounterData, ccr cubeCounterRequest, u
 
 	for rows.Next() {
 		var userID string
-		var userName string
+		var userName string = userGetter[userID]
 		var tString string
 		var rolesString string
 		rows.Scan(&userID, &tString, &rolesString)
@@ -41,9 +41,6 @@ func processDB(channelID string, ccB *cubeCounterData, ccr cubeCounterRequest, u
 			logging.ERROR("Error parsing time;\n "+err.Error(), "CubeCounter.createImg")
 			continue
 		}
-
-		dbr := userGetter.QueryRow(userID)
-		dbr.Scan(&userName)
 
 		msg := MessageEntry{
 			Date:     t,
@@ -141,10 +138,18 @@ func createData(ccR cubeCounterRequest) *cubeCounterData {
 	}
 	defer usernamesDB.Close()
 
-	userGetter, e := usernamesDB.Prepare("SELECT name FROM usernames WHERE user_id = $1")
+	data, e := usernamesDB.Query("SELECT user_id, name FROM usernames;")
 	if e != nil {
 		logging.ERROR("An error occurred trying to prepare the username database."+e.Error(), "CubeCounter.createImg")
 		return &cubeCounterData{}
+	}
+
+	usernames := make(map[string]string)
+	for data.Next() {
+		var username string
+		var user_id string
+		data.Scan(&user_id, &username)
+		usernames[user_id] = username
 	}
 
 	var ccB = cubeCounterData{
@@ -164,7 +169,7 @@ func createData(ccR cubeCounterRequest) *cubeCounterData {
 	}
 
 	for _, c := range ccR.channelIDs {
-		processDB(c, &ccB, ccR, userGetter)
+		processDB(c, &ccB, ccR, usernames)
 	}
 
 	return &ccB
