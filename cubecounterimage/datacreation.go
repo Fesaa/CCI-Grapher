@@ -4,7 +4,6 @@ import (
 	"cci_grapher/config"
 	"cci_grapher/logging"
 	"database/sql"
-	"fmt"
 	"strings"
 	"time"
 
@@ -173,8 +172,6 @@ func createData(ccR cubeCounterRequest) *cubeCounterData {
 	for _, c := range ccR.channelIDs {
 		processDB(c, &ccB, ccR, usernames)
 	}
-
-	fmt.Println(ccB)
 
 	return &ccB
 }
