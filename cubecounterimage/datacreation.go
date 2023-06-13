@@ -4,6 +4,7 @@ import (
 	"cci_grapher/config"
 	"cci_grapher/logging"
 	"database/sql"
+	"fmt"
 	"strings"
 	"time"
 
@@ -29,6 +30,12 @@ func processDB(channelID string, ccB *cubeCounterData, ccr cubeCounterRequest, u
 
 	var active_members = map[string]ActiveMembersStruct{}
 
+	var totalMessagesTimer time.Duration = 0
+	var consecutiveTimeTimer1 time.Duration = 0
+	var consecutiveTimeTimer2 time.Duration = 0
+	var consecutiveTimeTimer3 time.Duration = 0
+	var roleDistributionTimer1 time.Duration = 0
+	var roleDistributionTimer2 time.Duration = 0
 	for rows.Next() {
 		var userID string
 		var tString string
@@ -52,15 +59,18 @@ func processDB(channelID string, ccB *cubeCounterData, ccr cubeCounterRequest, u
 		ccB.totalMessageCount = ccB.totalMessageCount + 1
 
 		// Adding to totalMessages
+		now := time.Now()
 		if _, ok := ccB.totalMessages[msg.AuthorID]; ok {
 			ccB.totalMessages[msg.AuthorID] = ccB.totalMessages[msg.AuthorID] + 1
 		} else {
 			ccB.totalMessages[msg.AuthorID] = 1
 		}
+		totalMessagesTimer += time.Since(now)
 
 		// consecutiveTime calculations
 		var to_remove = []string{}
 
+		now = time.Now()
 		if _, ok := active_members[msg.AuthorID]; ok {
 			temp := active_members[msg.AuthorID]
 			temp.last_time = msg.Date
@@ -73,7 +83,9 @@ func processDB(channelID string, ccB *cubeCounterData, ccr cubeCounterRequest, u
 				messages:   1,
 			}
 		}
+		consecutiveTimeTimer1 += time.Since(now)
 
+		now = time.Now()
 		for userID, info := range active_members {
 			timeDifference := msg.Date.Sub(info.last_time)
 
@@ -92,15 +104,20 @@ func processDB(channelID string, ccB *cubeCounterData, ccr cubeCounterRequest, u
 				to_remove = append(to_remove, userID)
 			}
 		}
+		consecutiveTimeTimer2 += time.Since(now)
 
+		now = time.Now()
 		for _, userID := range to_remove {
 			delete(active_members, userID)
 		}
+		consecutiveTimeTimer3 += time.Since(now)
 
 		// roleDistribution calculations
 		var to_add []string
 		var contains_java bool = false
 		var contains_bedrock bool = false
+
+		now = time.Now()
 		for _, role := range msg.RolesIDs {
 			if _, ok := roles[role]; ok {
 				to_add = append(to_add, role)
@@ -113,7 +130,9 @@ func processDB(channelID string, ccB *cubeCounterData, ccr cubeCounterRequest, u
 				contains_bedrock = true
 			}
 		}
+		roleDistributionTimer1 += time.Since(now)
 
+		now = time.Now()
 		if contains_java && !contains_bedrock {
 			ccB.roleDistribution["Java Only"] = ccB.roleDistribution["Java Only"] + 1
 		} else if !contains_java && contains_bedrock {
@@ -125,10 +144,20 @@ func processDB(channelID string, ccB *cubeCounterData, ccr cubeCounterRequest, u
 		if len(to_add) == 0 {
 			ccB.roleDistribution["No Roles"] = ccB.roleDistribution["No Roles"] + 1
 		}
+		roleDistributionTimer2 += time.Since(now)
 
 		// hourlyActivity
 		ccB.hourlyActivity[msg.Date.Hour()] = ccB.hourlyActivity[msg.Date.Hour()] + 1
 	}
+
+	logging.LOGGING(fmt.Sprintf("Counting total messages per person took: %v", totalMessagesTimer), "CCI.processDB")
+	logging.LOGGING(fmt.Sprintf("Adding or updating consecutive struct took: %v", consecutiveTimeTimer1), "CCI.processDB")
+	logging.LOGGING(fmt.Sprintf("Looping over active members took: %v", consecutiveTimeTimer2), "CCI.processDB")
+	logging.LOGGING(fmt.Sprintf("Removing inactive members took: %v", consecutiveTimeTimer3), "CCI.processDB")
+	logging.LOGGING(fmt.Sprintf("Looping over user roles took: %v", roleDistributionTimer1), "CCI.processDB")
+	logging.LOGGING(fmt.Sprintf("Checking special roles took: %v", roleDistributionTimer1), "CCI.processDB")
+
+
 }
 
 func createData(ccR cubeCounterRequest) *cubeCounterData {

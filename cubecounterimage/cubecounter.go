@@ -88,9 +88,11 @@ func CCI(s *discordgo.Session, e *discordgo.MessageCreate) {
 
 	var b bytes.Buffer
 	if err := png.Encode(&b, finalImage); err != nil {
-		logging.ERROR("An error occured trying to convert the image to a reader:\n"+err.Error(), "cc._cci")
+		logging.ERROR("An error occurred trying to convert the image to a reader:\n"+err.Error(), "cc._cci")
 		return
 	}
+	stop5 := time.Now()
+	logging.LOGGING(fmt.Sprintf("Encoding took: %v", stop5.Sub(stop4)), "CCI")
 	var elapsed time.Duration = time.Since(start)
 
 	s.ChannelMessageSendComplex(e.ChannelID, &discordgo.MessageSend{
