@@ -11,17 +11,17 @@ import (
 )
 
 func processDB(channelID string, ccB *cubeCounterData, ccr cubeCounterRequest, userGetter map[string]string) {
-	db := db.CHANNELDBS[channelID]
+	channelDb := db.CHANNELDBS[channelID]
 
 	now := time.Now()
-	rows, e := db.Query("SELECT user_id,time,roles FROM msgs WHERE time > $1 AND time < $2;", ccr.startDate, ccr.endDate)
+	rows, e := channelDb.Query("SELECT user_id,time,roles FROM msgs WHERE time > $1 AND time < $2;", ccr.startDate, ccr.endDate)
 	if e != nil {
 		logging.ERROR("An error occurred trying to fetch data from "+channelID+"\n"+e.Error(), "CubeCounter.createImg")
 		return
 	}
-	logging.LOGGING(fmt.Sprintf("Getting data from db took: %v", time.Since(now)), "CCI.processDB")
+	logging.LOGGING(fmt.Sprintf("Getting data from channel_db took: %v", time.Since(now)), "CCI.processDB")
 
-	var active_members = map[string]ActiveMembersStruct{}
+	var activeMembers = map[string]ActiveMembersStruct{}
 
 	var totalMessagesTimer time.Duration = 0
 	var consecutiveTimeTimer1 time.Duration = 0
@@ -33,11 +33,15 @@ func processDB(channelID string, ccB *cubeCounterData, ccr cubeCounterRequest, u
 		var userID string
 		var tString string
 		var rolesString string
-		rows.Scan(&userID, &tString, &rolesString)
+		err := rows.Scan(&userID, &tString, &rolesString)
+		if err != nil {
+			logging.ERROR("An error occurred trying to scan from rows.", "CubeCounter.processDB")
+			return
+		}
 
 		t, err := time.Parse("2006-01-02 15:04:05.999", strings.TrimSuffix(strings.Split(tString, "+")[0], " "))
 		if err != nil {
-			logging.ERROR("Error parsing time;\n "+err.Error(), "CubeCounter.createImg")
+			logging.ERROR("Error parsing time;\n "+err.Error(), "CubeCounter.processDB")
 			continue
 		}
 
@@ -61,32 +65,32 @@ func processDB(channelID string, ccB *cubeCounterData, ccr cubeCounterRequest, u
 		totalMessagesTimer += time.Since(now)
 
 		// consecutiveTime calculations
-		var to_remove = []string{}
+		var toRemove []string
 
 		now = time.Now()
-		if _, ok := active_members[msg.AuthorID]; ok {
-			temp := active_members[msg.AuthorID]
-			temp.last_time = msg.Date
+		if _, ok := activeMembers[msg.AuthorID]; ok {
+			temp := activeMembers[msg.AuthorID]
+			temp.lastTime = msg.Date
 			temp.messages++
-			active_members[msg.AuthorID] = temp
+			activeMembers[msg.AuthorID] = temp
 		} else {
-			active_members[msg.AuthorID] = ActiveMembersStruct{
-				start_time: msg.Date,
-				last_time:  msg.Date,
-				messages:   1,
+			activeMembers[msg.AuthorID] = ActiveMembersStruct{
+				startTime: msg.Date,
+				lastTime:  msg.Date,
+				messages:  1,
 			}
 		}
 		consecutiveTimeTimer1 += time.Since(now)
 
 		now = time.Now()
-		for userID, info := range active_members {
-			timeDifference := msg.Date.Sub(info.last_time)
+		for userID, info := range activeMembers {
+			timeDifference := msg.Date.Sub(info.lastTime)
 
 			if timeDifference.Seconds()/60 > 10 {
-				timeDelta := info.last_time.Sub(info.start_time)
+				timeDelta := info.lastTime.Sub(info.startTime)
 
 				if timeDelta.Seconds() == 0 {
-					timeDelta = time.Duration(time.Minute * 2)
+					timeDelta = time.Minute * 2
 				}
 				if info.messages*10 < int(timeDelta.Seconds()/60) {
 					timeDelta = time.Duration(int64(time.Minute) * 2 * int64(info.messages))
@@ -94,47 +98,47 @@ func processDB(channelID string, ccB *cubeCounterData, ccr cubeCounterRequest, u
 
 				ccB.consecutiveTime[userID] = append(ccB.consecutiveTime[userID], timeDelta.Seconds())
 
-				to_remove = append(to_remove, userID)
+				toRemove = append(toRemove, userID)
 			}
 		}
 		consecutiveTimeTimer2 += time.Since(now)
 
 		now = time.Now()
-		for _, userID := range to_remove {
-			delete(active_members, userID)
+		for _, userID := range toRemove {
+			delete(activeMembers, userID)
 		}
 		consecutiveTimeTimer3 += time.Since(now)
 
 		// roleDistribution calculations
-		var to_add []string
-		var contains_java bool = false
-		var contains_bedrock bool = false
+		var toAdd []string
+		var containsJava bool = false
+		var containsBedrock bool = false
 
 		now = time.Now()
 		for _, role := range msg.RolesIDs {
 			if _, ok := roles[role]; ok {
-				to_add = append(to_add, role)
+				toAdd = append(toAdd, role)
 				ccB.roleDistribution[role] = ccB.roleDistribution[role] + 1
 			}
 			if role == javaRole {
-				contains_java = true
+				containsJava = true
 			}
 			if role == bedrockRole {
-				contains_bedrock = true
+				containsBedrock = true
 			}
 		}
 		roleDistributionTimer1 += time.Since(now)
 
 		now = time.Now()
-		if contains_java && !contains_bedrock {
+		if containsJava && !containsBedrock {
 			ccB.roleDistribution["Java Only"] = ccB.roleDistribution["Java Only"] + 1
-		} else if !contains_java && contains_bedrock {
+		} else if !containsJava && containsBedrock {
 			ccB.roleDistribution["Bedrock Only"] = ccB.roleDistribution["Bedrock Only"] + 1
-		} else if contains_java && contains_bedrock {
+		} else if containsJava && containsBedrock {
 			ccB.roleDistribution["Dual"] = ccB.roleDistribution["Dual"] + 1
 		}
 
-		if len(to_add) == 0 {
+		if len(toAdd) == 0 {
 			ccB.roleDistribution["No Roles"] = ccB.roleDistribution["No Roles"] + 1
 		}
 		roleDistributionTimer2 += time.Since(now)
@@ -156,16 +160,20 @@ func createData(ccR cubeCounterRequest) *cubeCounterData {
 	now := time.Now()
 	data, e := db.USERNAMEDB.Query("SELECT user_id, name FROM usernames;")
 	if e != nil {
-		logging.ERROR("An error occurred trying to prepare the username database."+e.Error(), "CubeCounter.createImg")
+		logging.ERROR("An error occurred trying to prepare the username database."+e.Error(), "CubeCounter.createData")
 		return &cubeCounterData{}
 	}
 
 	usernames := make(map[string]string)
 	for data.Next() {
 		var username string
-		var user_id string
-		data.Scan(&user_id, &username)
-		usernames[user_id] = username
+		var userId string
+		err := data.Scan(&userId, &username)
+		if err != nil {
+			logging.ERROR("An error occurred trying to scan from data", "CubeCounter.createData")
+			return nil
+		}
+		usernames[userId] = username
 	}
 	logging.LOGGING(fmt.Sprintf("Making usernames map took: %v", time.Since(now)), "CCI.createData")
 
@@ -189,6 +197,7 @@ func createData(ccR cubeCounterRequest) *cubeCounterData {
 
 	now = time.Now()
 	for _, c := range ccR.channelIDs {
+		logging.INFO(fmt.Sprintf("Starting `processDB` for channelID: \"%s\"", c), "CubeCounter.createData")
 		processDB(c, &ccB, ccR, usernames)
 	}
 	logging.LOGGING(fmt.Sprintf("processDB took: %v", time.Since(now)), "CCI.createData")

@@ -19,7 +19,7 @@ const dataParse string = "2006-01-02"
 func CCI(s *discordgo.Session, e *discordgo.MessageCreate) {
 	content := e.Content
 
-	if !strings.HasPrefix(content, "?cc") {
+	if !strings.HasPrefix(content, "&cc") {
 		return
 	}
 
@@ -95,7 +95,7 @@ func CCI(s *discordgo.Session, e *discordgo.MessageCreate) {
 	logging.LOGGING(fmt.Sprintf("Encoding took: %v", stop5.Sub(stop4)), "CCI")
 	var elapsed time.Duration = time.Since(start)
 
-	s.ChannelMessageSendComplex(e.ChannelID, &discordgo.MessageSend{
+	_, err := s.ChannelMessageSendComplex(e.ChannelID, &discordgo.MessageSend{
 		Files: []*discordgo.File{
 			{
 				Name:        "cci.jpg",
@@ -125,5 +125,9 @@ func CCI(s *discordgo.Session, e *discordgo.MessageCreate) {
 			},
 		},
 	})
+	if err != nil {
+		logging.ERROR(fmt.Sprintf("Could not send message in %s", e.ChannelID), "cubecounter.CCI")
+		return
+	}
 
 }

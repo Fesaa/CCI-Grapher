@@ -30,8 +30,16 @@ func Init() bool {
 }
 
 func Shutdown() {
-	USERNAMEDB.Close()
+	err := USERNAMEDB.Close()
+	if err != nil {
+		logging.ERROR("Could not close USERNAMEDB", "Shutdown")
+		return
+	}
 	for _, db := range CHANNELDBS {
-		db.Close()
+		err := db.Close()
+		if err != nil {
+			logging.ERROR("Could not close a CHANNELDB", "Shutdown")
+			return
+		}
 	}
 }

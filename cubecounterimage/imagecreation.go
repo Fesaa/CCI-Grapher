@@ -30,15 +30,19 @@ func toImages(iD imageData) []image.Image {
 			Label: v,
 			Value: float64(iD.totalMessages[v]),
 			Style: chart.Style{
-				FillColor:   colourMap[int(i/5)],
-				StrokeColor: colourMap[int(i/5)],
-				DotColor:    colourMap[int(i/5)],
+				FillColor:   colourMap[i/5],
+				StrokeColor: colourMap[i/5],
+				DotColor:    colourMap[i/5],
 			},
 		})
 	}
 	totalMessagesChart := barChartMaker(fmt.Sprintf("Total messages (%d)", iD.totalMessageCount), totalMessagesBars)
 	totalMessagesCollector := &chart.ImageWriter{}
-	totalMessagesChart.Render(chart.PNG, totalMessagesCollector)
+	err := totalMessagesChart.Render(chart.PNG, totalMessagesCollector)
+	if err != nil {
+		logging.ERROR("Could not Render Total Messages chart:\n"+err.Error(), "cubecounterimage.toImages")
+		return nil
+	}
 	totalMessagesImage, err := totalMessagesCollector.Image()
 	if err != nil {
 		logging.ERROR("Could not collect Total Messages chart:\n"+err.Error(), "cubecounterimage.toImages")
@@ -50,17 +54,21 @@ func toImages(iD imageData) []image.Image {
 	for i, v := range iD.consecutiveTimeArray {
 		consecutiveTimeBars = append(consecutiveTimeBars, chart.Value{
 			Label: v,
-			Value: float64(iD.consecutiveTime[v]),
+			Value: iD.consecutiveTime[v],
 			Style: chart.Style{
-				FillColor:   colourMap[int(i/5)],
-				StrokeColor: colourMap[int(i/5)],
-				DotColor:    colourMap[int(i/5)],
+				FillColor:   colourMap[(i / 5)],
+				StrokeColor: colourMap[(i / 5)],
+				DotColor:    colourMap[(i / 5)],
 			},
 		})
 	}
 	consecutiveTimeChart := barChartMaker("Consecutive Time (h)", consecutiveTimeBars)
 	consecutiveTimeCollector := &chart.ImageWriter{}
-	consecutiveTimeChart.Render(chart.PNG, consecutiveTimeCollector)
+	err = consecutiveTimeChart.Render(chart.PNG, consecutiveTimeCollector)
+	if err != nil {
+		logging.ERROR("Could not Render Consecutive Time chart:\n"+err.Error(), "cubecounterimage.toImages")
+		return nil
+	}
 	consecutiveTimeImage, err := consecutiveTimeCollector.Image()
 	if err != nil {
 		logging.ERROR("Could not collect Consecutive Time chart:\n"+err.Error(), "cubecounterimage.toImages")
@@ -74,15 +82,19 @@ func toImages(iD imageData) []image.Image {
 			Label: v,
 			Value: float64(iD.roleDistribution[v]),
 			Style: chart.Style{
-				FillColor:   colourMap[int(i/5)],
-				StrokeColor: colourMap[int(i/5)],
-				DotColor:    colourMap[int(i/5)],
+				FillColor:   colourMap[(i / 5)],
+				StrokeColor: colourMap[(i / 5)],
+				DotColor:    colourMap[(i / 5)],
 			},
 		})
 	}
 	roleDistributionChart := barChartMaker("Role Distribution (%)", roleDistributionBars)
 	roleDistributionCollector := &chart.ImageWriter{}
-	roleDistributionChart.Render(chart.PNG, roleDistributionCollector)
+	err = roleDistributionChart.Render(chart.PNG, roleDistributionCollector)
+	if err != nil {
+		logging.ERROR("Could not Render Role Distribution chart:\n"+err.Error(), "cubecounterimage.toImages")
+		return nil
+	}
 	roleDistributionImage, err := roleDistributionCollector.Image()
 	if err != nil {
 		logging.ERROR("Could not collect Role Distribution chart:\n"+err.Error(), "cubecounterimage.toImages")
@@ -113,7 +125,11 @@ func toImages(iD imageData) []image.Image {
 	//hourlyActivityChart.BaseValue = 0
 	//hourlyActivityChart.UseBaseValue = true
 	hourlyActivityCollector := &chart.ImageWriter{}
-	hourlyActivityChart.Render(chart.PNG, hourlyActivityCollector)
+	err = hourlyActivityChart.Render(chart.PNG, hourlyActivityCollector)
+	if err != nil {
+		logging.ERROR("Could not Render Hourly Activity chart:\n"+err.Error(), "cubecounterimage.toImages")
+		return nil
+	}
 	hourlyActivityImage, err := hourlyActivityCollector.Image()
 	if err != nil {
 		logging.ERROR("Could not collect Hourly Activity chart:\n"+err.Error(), "cubecounterimage.toImages")

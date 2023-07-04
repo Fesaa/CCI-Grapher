@@ -2,8 +2,8 @@ package config
 
 import (
 	"encoding/json"
-	"io/ioutil"
 	"log"
+	"os"
 )
 
 type ConfigDiscord struct {
@@ -26,7 +26,7 @@ var CC ConfigCC
 var Logging int
 
 func LoadConfig(path string) {
-	file, e := ioutil.ReadFile(path)
+	file, e := os.ReadFile(path)
 	if e != nil {
 		log.Panic(e)
 	}

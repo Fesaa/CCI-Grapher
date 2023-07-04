@@ -16,27 +16,27 @@ import (
 func Run() {
 	bot, e := discordgo.New("Bot " + config.Discord.Token)
 	if e != nil {
-		logging.FATAL("Error creating Discord session: "+e.Error(), "cci_grapher.run")
+		logging.FATAL("Error creating Discord session: "+e.Error(), "main.run")
 	}
-
-	logging.INFO("Initialising database queries", "cci_grapher.run")
-
 	bot.Identify.Intents = discordgo.IntentsAll
-
 	bot.AddHandler(cubecounterimage.CCI)
 
 	e = bot.Open()
 	if e != nil {
-		logging.FATAL("Error opening Discord session: "+e.Error(), "cci_grapher.run")
+		logging.FATAL("Error opening Discord session: "+e.Error(), "main.run")
 	}
-	logging.INFO(bot.State.User.Username+" has started up with session ID "+bot.State.SessionID, "cci_grapher.run")
+	logging.INFO(bot.State.User.Username+" has started up with session ID "+bot.State.SessionID, "main.run")
 	sc := make(chan os.Signal, 1)
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt)
 	<-sc
 
-	logging.INFO("Shutting down", "cci_grapher.run")
+	logging.INFO("Shutting down", "main.run")
 	db.Shutdown()
-	bot.Close()
+	err := bot.Close()
+	if err != nil {
+		logging.ERROR("Bot did not close correctly", "main.run")
+		return
+	}
 }
 
 func main() {

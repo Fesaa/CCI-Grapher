@@ -3,9 +3,9 @@ package cubecounterimage
 import "time"
 
 type cubeCounterRequest struct {
-	channelIDs  []string
-	startDate   time.Time
-	endDate     time.Time
+	channelIDs []string
+	startDate  time.Time
+	endDate    time.Time
 }
 
 type MessageEntry struct {
@@ -15,9 +15,9 @@ type MessageEntry struct {
 }
 
 type ActiveMembersStruct struct {
-	messages   int
-	start_time time.Time
-	last_time  time.Time
+	messages  int
+	startTime time.Time
+	lastTime  time.Time
 }
 
 type HourMinute struct {
@@ -26,20 +26,20 @@ type HourMinute struct {
 }
 
 type cubeCounterData struct {
-	totalMessageCount      int
-	totalMessages          map[string]int
-	consecutiveTime        map[string][]float64
-	roleDistribution       map[string]int
-	hourlyActivity         map[int]int
+	totalMessageCount int
+	totalMessages     map[string]int
+	consecutiveTime   map[string][]float64
+	roleDistribution  map[string]int
+	hourlyActivity    map[int]int
 }
 
 type imageData struct {
-	totalMessageCount      int
-	totalMessagesArray     []string
-	totalMessages          map[string]int
-	consecutiveTimeArray   []string
-	consecutiveTime        map[string]float64
-	roleDistributionArray  []string
-	roleDistribution       map[string]int
-	hourlyActivity         map[int]float64
+	totalMessageCount     int
+	totalMessagesArray    []string
+	totalMessages         map[string]int
+	consecutiveTimeArray  []string
+	consecutiveTime       map[string]float64
+	roleDistributionArray []string
+	roleDistribution      map[string]int
+	hourlyActivity        map[int]float64
 }
