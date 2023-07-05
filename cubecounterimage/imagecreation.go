@@ -11,16 +11,15 @@ import (
 	"github.com/wcharczuk/go-chart/v2/drawing"
 )
 
+var colourMap = map[int]drawing.Color{
+	0: chart.ColorRed,
+	1: chart.ColorOrange,
+	2: chart.ColorAlternateYellow,
+	3: chart.ColorAlternateGreen,
+	4: chart.ColorAlternateBlue,
+}
+
 func toImages(iD imageData) []image.Image {
-
-	var colourMap = map[int]drawing.Color{
-		0: chart.ColorRed,
-		1: chart.ColorOrange,
-		2: chart.ColorAlternateYellow,
-		3: chart.ColorAlternateGreen,
-		4: chart.ColorAlternateBlue,
-	}
-
 	var imgs []image.Image
 
 	// Total messages
@@ -103,11 +102,7 @@ func toImages(iD imageData) []image.Image {
 
 	// Hourly Activity
 	var hourlyActivityBars []chart.Value
-	values := make([]float64, 0, len(iD.hourlyActivity))
-	for _, v := range iD.hourlyActivity {
-		values = append(values, v)
-	}
-	max, min := utils.MaxOfFloat64Array(values), utils.MinOfFloat64Array(values)
+	min, max := utils.MinMaxOfMap(iD.hourlyActivity)
 	for i := 0; i < 24; i++ {
 		v := iD.hourlyActivity[i]
 		c := 5 - (int(math.Ceil((v - min) / ((max - min) / 5))))
@@ -122,8 +117,6 @@ func toImages(iD imageData) []image.Image {
 		})
 	}
 	hourlyActivityChart := barChartMaker("Hourly Activity (%)", hourlyActivityBars)
-	//hourlyActivityChart.BaseValue = 0
-	//hourlyActivityChart.UseBaseValue = true
 	hourlyActivityCollector := &chart.ImageWriter{}
 	err = hourlyActivityChart.Render(chart.PNG, hourlyActivityCollector)
 	if err != nil {
@@ -144,9 +137,9 @@ func toImages(iD imageData) []image.Image {
 
 }
 
-func barChartMaker(t string, b []chart.Value) chart.BarChart {
+func barChartMaker(title string, bars []chart.Value) chart.BarChart {
 	return chart.BarChart{
-		Title: t,
+		Title: title,
 		TitleStyle: chart.Style{
 			FontColor: chart.ColorBlack,
 		},
@@ -162,7 +155,7 @@ func barChartMaker(t string, b []chart.Value) chart.BarChart {
 		},
 		Height:   512,
 		BarWidth: 30,
-		Bars:     b,
+		Bars:     bars,
 		XAxis: chart.Style{
 			TextVerticalAlign:   chart.TextVerticalAlignTop,
 			TextRotationDegrees: 85,

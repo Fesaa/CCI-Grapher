@@ -16,7 +16,7 @@ func toImageData(ccB *cubeCounterData) imageData {
 		r[roles[k]] = int(float64(v) / float64(ccB.totalMessageCount) * 100)
 	}
 
-	var h = make(map[int]float64)
+	var h = make(map[interface{}]float64)
 	for k, v := range ccB.hourlyActivity {
 		h[k] = float64(v) / float64(ccB.totalMessageCount) * 100
 	}

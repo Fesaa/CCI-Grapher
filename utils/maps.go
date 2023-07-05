@@ -54,3 +54,18 @@ func TopNOfFloat64Map(m map[string]float64, n int) []string {
 
 	return out
 }
+
+func MinMaxOfMap(m map[interface{}]float64) (float64, float64) {
+	var min float64
+	var max float64
+
+	for _, v := range m {
+		if v < min {
+			min = v
+		}
+		if v > max {
+			max = v
+		}
+	}
+	return min, max
+}

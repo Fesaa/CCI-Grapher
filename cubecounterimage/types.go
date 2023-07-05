@@ -41,5 +41,5 @@ type imageData struct {
 	consecutiveTime       map[string]float64
 	roleDistributionArray []string
 	roleDistribution      map[string]int
-	hourlyActivity        map[int]float64
+	hourlyActivity        map[interface{}]float64
 }
