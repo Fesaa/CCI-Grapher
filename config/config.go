@@ -9,6 +9,7 @@ import (
 type ConfigDiscord struct {
 	Token         string `json:"token"`
 	ApplicationID string `json:"application_id"`
+	Prefix        string `json:"prefix"`
 }
 type ConfigCC struct {
 	CubePath   string   `json:"cube_path"`

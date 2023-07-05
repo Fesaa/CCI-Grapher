@@ -6,7 +6,6 @@ import (
 	"cci_grapher/logging"
 	"cci_grapher/utils"
 	"fmt"
-	"image"
 	"image/png"
 	"strings"
 	"time"
@@ -19,11 +18,12 @@ const dataParse string = "2006-01-02"
 func CCI(s *discordgo.Session, e *discordgo.MessageCreate) {
 	content := e.Content
 
-	if !strings.HasPrefix(content, "&cc") {
+	if !strings.HasPrefix(content, config.Discord.Prefix+"cc") {
 		return
 	}
 
-	parts := strings.Split(strings.Trim(strings.TrimPrefix(content, "?cc"), " "), " ")
+	trim := strings.TrimPrefix(content, config.Discord.Prefix+"cc")
+	parts := strings.Split(strings.Trim(trim, " "), " ")
 
 	now := time.Now()
 
@@ -60,31 +60,13 @@ func CCI(s *discordgo.Session, e *discordgo.MessageCreate) {
 
 	}
 
-	var start time.Time = time.Now()
 	var ccR cubeCounterRequest = cubeCounterRequest{
 		channelIDs: channelIDs,
 		startDate:  StartDate,
 		endDate:    EndDate,
 	}
-	var ccB *cubeCounterData = createData(ccR)
-	stop1 := time.Now()
-	logging.LOGGING(fmt.Sprintf("createData took: %v", stop1.Sub(start)), "CCI")
-
-	var imgData imageData = toImageData(ccB)
-	stop2 := time.Now()
-	logging.LOGGING(fmt.Sprintf("toImageData took: %v", stop2.Sub(stop1)), "CCI")
-
-	var imgArray []image.Image = toImages(imgData)
-	stop3 := time.Now()
-	logging.LOGGING(fmt.Sprintf("toImages took: %v", stop3.Sub(stop2)), "CCI")
-	if imgArray == nil {
-		logging.ERROR("toImages returned nil. Cannot proceed", "cc._cci")
-		return
-	}
-
-	var finalImage image.Image = imageMerge(imgArray, ccR)
-	stop4 := time.Now()
-	logging.LOGGING(fmt.Sprintf("imageMerge took: %v", stop4.Sub(stop3)), "CCI")
+	var start time.Time = time.Now()
+	finalImage, stop4 := handleRequest(ccR, start)
 
 	var b bytes.Buffer
 	if err := png.Encode(&b, finalImage); err != nil {
@@ -103,27 +85,7 @@ func CCI(s *discordgo.Session, e *discordgo.MessageCreate) {
 				Reader:      &b,
 			},
 		},
-		Embeds: []*discordgo.MessageEmbed{
-			{
-				Title: "Cube Counter Request",
-				Thumbnail: &discordgo.MessageEmbedThumbnail{
-					URL: "https://i.imgur.com/xOWrY8G.png",
-				},
-				Author: &discordgo.MessageEmbedAuthor{
-					Name:    e.Author.Username,
-					IconURL: e.Author.AvatarURL(""),
-				},
-				Description: fmt.Sprintf("Start date: %v %d\nEnd Date: %v %d", StartDate.Month().String(), StartDate.Day(), EndDate.Month().String(), EndDate.Day()),
-				Timestamp:   time.Now().Format(time.RFC3339),
-				Color:       0x6A56F6,
-				Footer: &discordgo.MessageEmbedFooter{
-					Text: fmt.Sprintf("Creation time: %d ms", elapsed/1000000),
-				},
-				Image: &discordgo.MessageEmbedImage{
-					URL: "attachment://cci.jpg",
-				},
-			},
-		},
+		Embeds: []*discordgo.MessageEmbed{createEmbed(ccR, e.Author, elapsed)},
 	})
 	if err != nil {
 		logging.ERROR(fmt.Sprintf("Could not send message in %s", e.ChannelID), "cubecounter.CCI")
