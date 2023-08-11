@@ -85,7 +85,7 @@ func CCI(s *discordgo.Session, e *discordgo.MessageCreate) {
 				Reader:      &b,
 			},
 		},
-		Embeds: []*discordgo.MessageEmbed{createEmbed(ccR, e.Author, elapsed)},
+		Embed: createEmbed(ccR, e.Author, elapsed),
 	})
 	if err != nil {
 		logging.ERROR(fmt.Sprintf("Could not send message in %s", e.ChannelID), "cubecounter.CCI")
