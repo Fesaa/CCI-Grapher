@@ -5,16 +5,20 @@ import (
 	"cci_grapher/logging"
 	"fmt"
 	"strings"
+	"sync"
 	"time"
 
 	_ "github.com/mattn/go-sqlite3"
 )
 
-func processDB(channelID string, ccB *cubeCounterData, ccr cubeCounterRequest, userGetter map[string]string) {
-	channelDb := db.CHANNELDBS[channelID]
+func processDB(channelID string, ccB *cubeCounterData, ccr cubeCounterRequest, userGetter map[string]string, wg *sync.WaitGroup) {
+	defer wg.Done()
 
 	now := time.Now()
-	rows, e := channelDb.Query("SELECT user_id,time,roles FROM msgs WHERE time > $1 AND time < $2;", ccr.startDate, ccr.endDate)
+	rows, e := db.GetAllMessagesBetweenForChannel.Query(
+		ccr.startDate.Format("2006-01-02 15:04:05"),
+		ccr.endDate.Format("2006-01-02 15:04:05"),
+		channelID)
 	if e != nil {
 		logging.ERROR("An error occurred trying to fetch data from "+channelID+"\n"+e.Error(), "CubeCounter.createImg")
 		return
@@ -30,16 +34,18 @@ func processDB(channelID string, ccB *cubeCounterData, ccr cubeCounterRequest, u
 	var roleDistributionTimer1 time.Duration = 0
 	var roleDistributionTimer2 time.Duration = 0
 	for rows.Next() {
+		var messageID string
+		var channelID string
 		var userID string
 		var tString string
 		var rolesString string
-		err := rows.Scan(&userID, &tString, &rolesString)
+		err := rows.Scan(&messageID, &channelID, &userID, &rolesString, &tString)
 		if err != nil {
-			logging.ERROR("An error occurred trying to scan from rows.", "CubeCounter.processDB")
+			logging.ERROR("An error occurred trying to scan from rows." + err.Error(), "CubeCounter.processDB")
 			return
 		}
 
-		t, err := time.Parse("2006-01-02 15:04:05.999", strings.TrimSuffix(strings.Split(tString, "+")[0], " "))
+		t, err := time.Parse("2006-01-02T15:04:05.999Z", strings.TrimSuffix(strings.Split(tString, "+")[0], " "))
 		if err != nil {
 			logging.ERROR("Error parsing time;\n "+err.Error(), "CubeCounter.processDB")
 			continue
@@ -158,7 +164,7 @@ func processDB(channelID string, ccB *cubeCounterData, ccr cubeCounterRequest, u
 
 func createData(ccR cubeCounterRequest) *cubeCounterData {
 	now := time.Now()
-	data, e := db.USERNAMEDB.Query("SELECT user_id, name FROM usernames;")
+	data, e := db.GetUsernames.Query()
 	if e != nil {
 		logging.ERROR("An error occurred trying to prepare the username database."+e.Error(), "CubeCounter.createData")
 		return &cubeCounterData{}
@@ -196,11 +202,14 @@ func createData(ccR cubeCounterRequest) *cubeCounterData {
 	logging.LOGGING(fmt.Sprintf("Making cubeCounterData took: %v", time.Since(now)), "CCI.createData")
 
 	now = time.Now()
+	wg := sync.WaitGroup{}
+	wg.Add(len(ccR.channelIDs))
 	for _, c := range ccR.channelIDs {
 		logging.INFO(fmt.Sprintf("Starting `processDB` for channelID: \"%s\"", c), "CubeCounter.createData")
-		processDB(c, &ccB, ccR, usernames)
+		go processDB(c, &ccB, ccR, usernames, &wg)
 	}
 	logging.LOGGING(fmt.Sprintf("processDB took: %v", time.Since(now)), "CCI.createData")
 
+	wg.Wait()
 	return &ccB
 }

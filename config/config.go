@@ -17,13 +17,15 @@ type ConfigCC struct {
 }
 
 type Config struct {
-	Discord ConfigDiscord `json:"discord"`
+	Discord  ConfigDiscord `json:"discord"`
 	CC      ConfigCC      `json:"cc"`
-	Logging int           `json:"logging"`
+	PsqlLink string        `json:"psql"`
+	Logging  int           `json:"logging"`
 }
 
-var Discord ConfigDiscord
+var CCConfig Config
 var CC ConfigCC
+var Discord ConfigDiscord
 var Logging int
 
 func LoadConfig(path string) {
@@ -39,6 +41,7 @@ func LoadConfig(path string) {
 		log.Panic(e)
 	}
 
+	CCConfig = c
 	Discord = c.Discord
 	CC = c.CC
 	Logging = c.Logging

@@ -27,7 +27,7 @@ func CCI(s *discordgo.Session, e *discordgo.MessageCreate) {
 
 	now := time.Now()
 
-	var channelIDs = []string{"174837853778345984"}
+	var channelIDs = config.CC.ChannelIDs
 	var defaultChannelIDs bool = true
 	var StartDate time.Time = time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC).Add(time.Hour * 24 * -7)
 	var EndDate time.Time = time.Now()

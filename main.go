@@ -31,7 +31,7 @@ func Run() {
 	<-sc
 
 	logging.INFO("Shutting down", "main.run")
-	db.Shutdown()
+	db.Disconnect()
 	err := bot.Close()
 	if err != nil {
 		logging.ERROR("Bot did not close correctly", "main.run")
@@ -42,10 +42,9 @@ func Run() {
 func main() {
 	config.LoadConfig("./config.json")
 	logging.SetUpLogging(logging.LoggingLevel(config.Logging))
-
-	if !db.Init() {
-		logging.FATAL("Error while setting up databases. Shutdown", "main")
+	if !db.Connect() {
+		logging.FATAL("Could not connect to database", "main.main")
 	}
-
+	db.Init()
 	Run()
 }
