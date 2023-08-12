@@ -150,12 +150,12 @@ func processDB(channelID string, ccB *cubeCounterData, ccr cubeCounterRequest, u
 		ccB.hourlyActivity[msg.Date.Hour()] = ccB.hourlyActivity[msg.Date.Hour()] + 1
 	}
 
-	utils.LOGGING(fmt.Sprintf("Counting total messages per person took: %v", totalMessagesTimer), "CCI.processDB")
-	utils.LOGGING(fmt.Sprintf("Adding or updating consecutive struct took: %v", consecutiveTimeTimer1), "CCI.processDB")
-	utils.LOGGING(fmt.Sprintf("Looping over active members took: %v", consecutiveTimeTimer2), "CCI.processDB")
-	utils.LOGGING(fmt.Sprintf("Removing inactive members took: %v", consecutiveTimeTimer3), "CCI.processDB")
-	utils.LOGGING(fmt.Sprintf("Looping over user roles took: %v", roleDistributionTimer1), "CCI.processDB")
-	utils.LOGGING(fmt.Sprintf("Checking special roles took: %v", roleDistributionTimer1), "CCI.processDB")
+	utils.LOGGING(fmt.Sprintf("[%s] Counting total messages per person took: %v", channelID, totalMessagesTimer), "CCI.processDB")
+	utils.LOGGING(fmt.Sprintf("[%s] Adding or updating consecutive struct took: %v", channelID, consecutiveTimeTimer1), "CCI.processDB")
+	utils.LOGGING(fmt.Sprintf("[%s] Looping over active members took: %v", channelID, consecutiveTimeTimer2), "CCI.processDB")
+	utils.LOGGING(fmt.Sprintf("[%s] Removing inactive members took: %v", channelID, consecutiveTimeTimer3), "CCI.processDB")
+	utils.LOGGING(fmt.Sprintf("[%s] Looping over user roles took: %v", channelID, roleDistributionTimer1), "CCI.processDB")
+	utils.LOGGING(fmt.Sprintf("[%s] Checking special roles took: %v", channelID, roleDistributionTimer1), "CCI.processDB")
 
 }
 

@@ -4,7 +4,7 @@ import (
 	"cci_grapher/utils"
 )
 
-func toImageData(ccB *cubeCounterData) imageData {
+func toImageData(ccB *cubeCounterData) *imageData {
 
 	var c map[string]float64 = make(map[string]float64)
 	for k, v := range ccB.consecutiveTime {
@@ -21,7 +21,7 @@ func toImageData(ccB *cubeCounterData) imageData {
 		h[k] = float64(v) / float64(ccB.totalMessageCount) * 100
 	}
 
-	return imageData{
+	return &imageData{
 		totalMessageCount:     ccB.totalMessageCount,
 		totalMessagesArray:    utils.TopNOfIntMap(ccB.totalMessages, 25),
 		totalMessages:         ccB.totalMessages,

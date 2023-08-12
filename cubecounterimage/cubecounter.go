@@ -66,6 +66,10 @@ func CCI(s *discordgo.Session, e *discordgo.MessageCreate) {
 	}
 	var start time.Time = time.Now()
 	finalImage, stop4 := handleRequest(ccR, start)
+	if finalImage == nil {
+		utils.ERROR("An error occurred trying to handle the request, returned nil", "cc._cci")
+		return
+	}
 
 	var b bytes.Buffer
 	if err := png.Encode(&b, finalImage); err != nil {
@@ -88,7 +92,5 @@ func CCI(s *discordgo.Session, e *discordgo.MessageCreate) {
 	})
 	if err != nil {
 		utils.ERROR(fmt.Sprintf("Could not send message in %s", e.ChannelID), "cubecounter.CCI")
-		return
 	}
-
 }

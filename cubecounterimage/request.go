@@ -11,19 +11,27 @@ import (
 func handleRequest(ccR cubeCounterRequest, start time.Time) (image.Image, time.Time) {
 	var ccB *cubeCounterData = createData(ccR)
 	stop1 := time.Now()
+	if ccB == nil {
+		utils.ERROR("createData returned nil. Cannot proceed", "CCI.handleRequest")
+		return nil, stop1
+	}
 	utils.LOGGING(fmt.Sprintf("createData took: %v", stop1.Sub(start)), "CCI.handleRequest")
 
-	var imgData imageData = toImageData(ccB)
+	var imgData *imageData = toImageData(ccB)
 	stop2 := time.Now()
+	if imgData == nil {
+		utils.ERROR("toImageData returned nil. Cannot proceed", "CCI.handleRequest")
+		return nil, stop2
+	}
 	utils.LOGGING(fmt.Sprintf("toImageData took: %v", stop2.Sub(stop1)), "CCI.handleRequest")
 
 	var imgArray []image.Image = toImages(imgData)
 	stop3 := time.Now()
-	utils.LOGGING(fmt.Sprintf("toImages took: %v", stop3.Sub(stop2)), "CCI.handleRequest")
 	if imgArray == nil {
 		utils.ERROR("toImages returned nil. Cannot proceed", "CCI.handleRequest")
-		return nil, time.Now()
+		return nil, stop3
 	}
+	utils.LOGGING(fmt.Sprintf("toImages took: %v", stop3.Sub(stop2)), "CCI.handleRequest")
 
 	var finalImage image.Image = imageMerge(imgArray, ccR)
 	stop4 := time.Now()

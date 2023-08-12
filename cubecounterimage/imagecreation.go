@@ -18,7 +18,7 @@ var colourMap = map[int]drawing.Color{
 	4: chart.ColorAlternateBlue,
 }
 
-func toImages(iD imageData) []image.Image {
+func toImages(iD *imageData) []image.Image {
 	var imgs []image.Image
 
 	// Total messages
