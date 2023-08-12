@@ -12,7 +12,7 @@ import (
 )
 
 func handleRequest(ccR cubeCounterRequest, start time.Time) (image.Image, time.Time) {
-	var ccB *cubeCounterData = createData(ccR)
+	var ccB []*cubeCounterData = createData(ccR)
 	stop1 := time.Now()
 	if ccB == nil {
 		utils.ERROR("createData returned nil. Cannot proceed", "CCI.handleRequest")

@@ -162,12 +162,12 @@ func processDB(channelID string, ccr cubeCounterRequest, userGetter map[string]s
 	ch <- ccB
 }
 
-func createData(ccR cubeCounterRequest) *cubeCounterData {
+func createData(ccR cubeCounterRequest) []*cubeCounterData {
 	now := time.Now()
 	data, e := db.GetAllUsernames()
 	if e != nil {
 		utils.ERROR("An error occurred trying to prepare the username database."+e.Error(), "CubeCounter.createData")
-		return &cubeCounterData{}
+		return nil
 	}
 
 	usernames := make(map[string]string)
@@ -184,7 +184,7 @@ func createData(ccR cubeCounterRequest) *cubeCounterData {
 	utils.LOGGING(fmt.Sprintf("Making usernames map took: %v", time.Since(now)), "CCI.createData")
 
 	now = time.Now()
-	var ccB = GetCubeCounterDate()
+	var out []*cubeCounterData = make([]*cubeCounterData, len(ccR.channelIDs))
 	utils.LOGGING(fmt.Sprintf("Making cubeCounterData took: %v", time.Since(now)), "CCI.createData")
 
 	now = time.Now()
@@ -201,7 +201,7 @@ func createData(ccR cubeCounterRequest) *cubeCounterData {
 	go func() {
 		defer wg1.Done()
 		for cc := range ch {
-			ccB = mergeCCB(ccB, cc)
+			out = append(out, &cc)
 		}
 	}()
 	wg.Wait()
@@ -211,5 +211,5 @@ func createData(ccR cubeCounterRequest) *cubeCounterData {
 	utils.LOGGING("Reached this point", "CubeCounter.createData")
 	//fmt.Println(ccB)
 	utils.LOGGING(fmt.Sprintf("processDB took: %v", time.Since(now)), "CCI.createData")
-	return &ccB
+	return out
 }

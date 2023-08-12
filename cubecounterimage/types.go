@@ -52,27 +52,6 @@ func GetCubeCounterDate() cubeCounterData {
 	return ccB
 }
 
-func mergeCCB(consumer cubeCounterData, supplier cubeCounterData) cubeCounterData {
-	consumer.totalMessageCount += supplier.totalMessageCount
-	for k, v := range supplier.totalMessages {
-		consumer.totalMessages[k] += v
-	}
-	for k, v := range supplier.consecutiveTime {
-		if _, ok := consumer.consecutiveTime[k]; !ok {
-			consumer.consecutiveTime[k] = append(consumer.consecutiveTime[k], v...)
-		} else {
-			consumer.consecutiveTime[k] = v
-		}
-	}
-	for k, v := range supplier.roleDistribution {
-		consumer.roleDistribution[k] += v
-	}
-	for k, v := range supplier.hourlyActivity {
-		consumer.hourlyActivity[k] += v
-	}
-	return consumer
-}
-
 type imageData struct {
 	totalMessageCount     int
 	totalMessagesArray    []string
