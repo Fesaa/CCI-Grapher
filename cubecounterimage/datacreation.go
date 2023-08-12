@@ -11,8 +11,9 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-func processDB(channelID string, ccB *cubeCounterData, ccr cubeCounterRequest, userGetter map[string]string, wg *sync.WaitGroup) {
+func processDB(channelID string, ccr cubeCounterRequest, userGetter map[string]string, wg *sync.WaitGroup, ch chan cubeCounterData) {
 	defer wg.Done()
+	ccB := GetCubeCounterDate()
 
 	now := time.Now()
 	rows, e := db.GetAllMessagesBetweenForChannel(ccr.startDate, ccr.endDate, channelID)
@@ -157,6 +158,8 @@ func processDB(channelID string, ccB *cubeCounterData, ccr cubeCounterRequest, u
 	utils.LOGGING(fmt.Sprintf("[%s] Looping over user roles took: %v", channelID, roleDistributionTimer1), "CCI.processDB")
 	utils.LOGGING(fmt.Sprintf("[%s] Checking special roles took: %v", channelID, roleDistributionTimer1), "CCI.processDB")
 
+	utils.INFO(fmt.Sprintf("[%s] Finished processing database, had %d msgs", channelID, ccB.totalMessageCount), "CubeCounter.processDB")
+	ch <- ccB
 }
 
 func createData(ccR cubeCounterRequest) *cubeCounterData {
@@ -181,32 +184,32 @@ func createData(ccR cubeCounterRequest) *cubeCounterData {
 	utils.LOGGING(fmt.Sprintf("Making usernames map took: %v", time.Since(now)), "CCI.createData")
 
 	now = time.Now()
-	var ccB = cubeCounterData{
-		totalMessageCount: 0,
-		totalMessages:     make(map[string]int),
-		consecutiveTime:   make(map[string][]float64),
-		roleDistribution:  make(map[string]int),
-		hourlyActivity:    make(map[int]int),
-	}
-
-	for k := range roles {
-		ccB.roleDistribution[k] = 0
-	}
-
-	for hour := 0; hour < 24; hour++ {
-		ccB.hourlyActivity[hour] = 0
-	}
+	var ccB = GetCubeCounterDate()
 	utils.LOGGING(fmt.Sprintf("Making cubeCounterData took: %v", time.Since(now)), "CCI.createData")
 
 	now = time.Now()
 	wg := sync.WaitGroup{}
 	wg.Add(len(ccR.channelIDs))
+	ch := make(chan cubeCounterData, len(ccR.channelIDs))
 	for _, c := range ccR.channelIDs {
 		utils.INFO(fmt.Sprintf("Starting `processDB` for channelID: \"%s\"", c), "CubeCounter.createData")
-		go processDB(c, &ccB, ccR, usernames, &wg)
+		processDB(c, ccR, usernames, &wg, ch)
 	}
-	utils.LOGGING(fmt.Sprintf("processDB took: %v", time.Since(now)), "CCI.createData")
 
+	wg1 := sync.WaitGroup{}
+	wg1.Add(1)
+	go func() {
+		defer wg1.Done()
+		for cc := range ch {
+			ccB = mergeCCB(ccB, cc)
+		}
+	}()
 	wg.Wait()
+	close(ch)
+	wg1.Wait()
+
+	utils.LOGGING("Reached this point", "CubeCounter.createData")
+	//fmt.Println(ccB)
+	utils.LOGGING(fmt.Sprintf("processDB took: %v", time.Since(now)), "CCI.createData")
 	return &ccB
 }
