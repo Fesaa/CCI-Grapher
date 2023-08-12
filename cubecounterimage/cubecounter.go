@@ -2,6 +2,7 @@ package cubecounterimage
 
 import (
 	"bytes"
+	"cci_grapher/db"
 	"cci_grapher/config"
 	"cci_grapher/utils"
 	"fmt"
@@ -14,7 +15,7 @@ import (
 
 const dataParse string = "2006-01-02"
 
-func CCI(s *discordgo.Session, e *discordgo.MessageCreate) {
+func CCI(s *discordgo.Session, e *discordgo.MessageCreate, db *db.DataBase) {
 	content := e.Content
 
 	if !strings.HasPrefix(content, config.Discord.Prefix+"cc") {
@@ -65,7 +66,7 @@ func CCI(s *discordgo.Session, e *discordgo.MessageCreate) {
 		endDate:    EndDate,
 	}
 	var start time.Time = time.Now()
-	finalImage, stop4 := handleRequest(ccR, start)
+	finalImage, stop4 := handleRequest(ccR, start, db)
 	if finalImage == nil {
 		utils.ERROR("An error occurred trying to handle the request, returned nil", "cc._cci")
 		return

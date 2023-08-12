@@ -2,6 +2,7 @@ package cubecounterimage
 
 import (
 	"cci_grapher/config"
+	"cci_grapher/db"
 	"cci_grapher/utils"
 	"fmt"
 	"image"
@@ -11,8 +12,8 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-func handleRequest(ccR cubeCounterRequest, start time.Time) (image.Image, time.Time) {
-	var ccB []*cubeCounterData = createData(ccR)
+func handleRequest(ccR cubeCounterRequest, start time.Time, db *db.DataBase) (image.Image, time.Time) {
+	var ccB *cubeCounterData = createData(ccR, db)
 	stop1 := time.Now()
 	if ccB == nil {
 		utils.ERROR("createData returned nil. Cannot proceed", "CCI.handleRequest")

@@ -18,7 +18,20 @@ func Run() {
 		utils.FATAL("Error creating Discord session: "+e.Error(), "main.run")
 	}
 	bot.Identify.Intents = discordgo.IntentsAll
-	bot.AddHandler(cubecounterimage.CCI)
+
+	dataBase := db.DataBase{}
+	e = dataBase.Connect(config.Config.PsqlLink)
+	if e != nil {
+		utils.FATAL("Error connecting to database: "+e.Error(), "main.run")
+	}
+	e = dataBase.Init()
+	if e != nil {
+		utils.FATAL("Error initializing database: "+e.Error(), "main.run")
+	}
+
+	bot.AddHandler(func (s *discordgo.Session, e *discordgo.MessageCreate)  {
+		go cubecounterimage.CCI(s, e, &dataBase)
+	})
 
 	e = bot.Open()
 	if e != nil {
@@ -30,7 +43,7 @@ func Run() {
 	<-sc
 
 	utils.INFO("Shutting down", "main.run")
-	err := db.Disconnect()
+	err := dataBase.Disconnect()
 	if err != nil {
 		utils.ERROR("Database did not close correctly", "main.run")
 	}
@@ -45,9 +58,5 @@ func Run() {
 func main() {
 	config.LoadConfig("./config.json")
 	utils.SetUpLogging(utils.LoggingLevel(config.Logging))
-	if !db.Connect() {
-		utils.FATAL("Could not connect to database", "main.main")
-	}
-	db.Init()
 	Run()
 }
