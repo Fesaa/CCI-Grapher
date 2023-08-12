@@ -1,6 +1,11 @@
 package cubecounterimage
 
-import "time"
+import (
+	"cci_grapher/utils"
+	"database/sql"
+	"strings"
+	"time"
+)
 
 type cubeCounterRequest struct {
 	channelIDs []string
@@ -135,6 +140,31 @@ func (ccB *cubeCounterData) AddRowInfo(msg MessageEntry, activeMembers map[strin
 	ccB.hourlyActivity[msg.Date.Hour()] = ccB.hourlyActivity[msg.Date.Hour()] + 1
 }
 
+func (ccB *cubeCounterData) processRows(rows *sql.Rows, userGetter map[string]string, activeMembers map[string]ActiveMembersStruct) (string, int, error) {
+	var messageID string = ""
+	var rowCounter int = 0
+	for rows.Next() {
+		rowCounter++
+		var userID string
+		var time time.Time
+		var rolesString string
+		err := rows.Scan(&messageID, &userID, &rolesString, &time)
+		if err != nil {
+			utils.ERROR("An error occurred trying to scan from rows."+err.Error(), "CubeCounter.processDB")
+			return "", 0, err
+		}
+		msg := MessageEntry{
+			Date:     time,
+			AuthorID: userGetter[userID],
+			RolesIDs: strings.Split(rolesString, ","),
+		}
+		ccB.AddRowInfo(msg, activeMembers)
+	}
+	if rowCounter < 10000 {
+		messageID = ""
+	}
+	return messageID, rowCounter, nil
+}
 type imageData struct {
 	totalMessageCount     int
 	totalMessagesArray    []string

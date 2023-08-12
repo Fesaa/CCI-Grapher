@@ -13,6 +13,7 @@ type DataBase struct {
 	db *sql.DB
 	getUsernames *sql.Stmt
 	getAllMessagesBetweenForChannel *sql.Stmt
+	getAllMessagesBetweenForChannelFromID *sql.Stmt
 }
 
 func (d *DataBase) Connect(psql string) error {
@@ -57,15 +58,28 @@ func (d *DataBase) Init() error {
 	if e != nil {
 		return e
 	}
-	d.getAllMessagesBetweenForChannel, e = Prepare("SELECT * FROM messages WHERE time BETWEEN $1 AND $2 AND channel_id = $3;", d.db)
+	d.getAllMessagesBetweenForChannel, e = Prepare("SELECT message_id,user_id,roles,time FROM messages WHERE time BETWEEN $1 AND $2 AND channel_id = $3 LIMIT 10000;", d.db)
 	if e != nil {
 		return e
 	}
+	d.getAllMessagesBetweenForChannelFromID, e = Prepare("SELECT message_id,user_id,roles,time FROM messages WHERE time BETWEEN $1 AND $2 AND channel_id = $3 AND message_id > $4 LIMIT 10000;", d.db)
+	if e != nil {
+		return e
+	}
+
 	return nil
 }
 
 func (d *DataBase) GetAllMessagesBetweenForChannel(start time.Time, end time.Time, channelId string) (*sql.Rows, error) {
 	rows, err := d.getAllMessagesBetweenForChannel.Query(start.Format("2006-01-02 15:04:05"), end.Format("2006-01-02 15:04:05"), channelId)
+	if err != nil {
+		return nil, err
+	}
+	return rows, nil
+}
+
+func (d *DataBase) GetAllMessagesBetweenForChannelFromID(start time.Time, end time.Time, channelId string, messageId string) (*sql.Rows, error) {
+	rows, err := d.getAllMessagesBetweenForChannelFromID.Query(start.Format("2006-01-02 15:04:05"), end.Format("2006-01-02 15:04:05"), channelId, messageId)
 	if err != nil {
 		return nil, err
 	}
