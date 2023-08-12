@@ -46,7 +46,7 @@ func createEmbed(ccR cubeCounterRequest, Author *discordgo.User, elapsed time.Du
 
 	description := fmt.Sprintf("Start date: %v %d\nEnd Date: %v %d",
 	ccR.startDate.Month().String(), ccR.startDate.Day(), ccR.endDate.Month().String(), ccR.endDate.Day())
-	if len(ccR.channelIDs) != len(config.CC.ChannelIDs) {
+	if len(ccR.channelIDs) != len(config.Config.ChannelIDs) {
 		description += "\nChannels: " + strings.Join(ccR.channelIDs, ", ")
 	}
 

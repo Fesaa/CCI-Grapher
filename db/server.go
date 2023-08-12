@@ -16,7 +16,7 @@ var getAllMessagesBetweenForChannel *sql.Stmt
 func Connect() bool {
 	utils.INFO("Connecting to database", "db.Connect")
 	var err error
-	db, err = sql.Open("postgres", config.CCConfig.PsqlLink)
+	db, err = sql.Open("postgres", config.Config.PsqlLink)
 	err2 := db.Ping()
 	if err != nil || err2 != nil {
 		if err != nil {

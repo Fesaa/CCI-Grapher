@@ -11,20 +11,15 @@ type ConfigDiscord struct {
 	ApplicationID string `json:"application_id"`
 	Prefix        string `json:"prefix"`
 }
-type ConfigCC struct {
-	CubePath   string   `json:"cube_path"`
-	ChannelIDs []string `json:"channel_ids"`
+
+type ConfigStruct struct {
+	Discord    ConfigDiscord `json:"discord"`
+	PsqlLink   string        `json:"psql"`
+	Logging    int           `json:"logging"`
+	ChannelIDs []string      `json:"channel_ids"`
 }
 
-type Config struct {
-	Discord  ConfigDiscord `json:"discord"`
-	CC      ConfigCC      `json:"cc"`
-	PsqlLink string        `json:"psql"`
-	Logging  int           `json:"logging"`
-}
-
-var CCConfig Config
-var CC ConfigCC
+var Config ConfigStruct
 var Discord ConfigDiscord
 var Logging int
 
@@ -34,15 +29,14 @@ func LoadConfig(path string) {
 		log.Panic(e)
 	}
 
-	var c Config
+	var c ConfigStruct
 
 	e = json.Unmarshal(file, &c)
 	if e != nil {
 		log.Panic(e)
 	}
 
-	CCConfig = c
+	Config = c
 	Discord = c.Discord
-	CC = c.CC
 	Logging = c.Logging
 }

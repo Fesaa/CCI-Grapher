@@ -26,14 +26,14 @@ func CCI(s *discordgo.Session, e *discordgo.MessageCreate) {
 
 	now := time.Now()
 
-	var channelIDs = config.CC.ChannelIDs
+	var channelIDs = config.Config.ChannelIDs
 	var defaultChannelIDs bool = true
 	var StartDate time.Time = time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC).Add(time.Hour * 24 * -7)
 	var EndDate time.Time = time.Now()
 	var index int = 0
 
 	for i, p := range parts {
-		if utils.InStringArray(config.CC.ChannelIDs, p) {
+		if utils.InStringArray(config.Config.ChannelIDs, p) {
 			if defaultChannelIDs {
 				channelIDs = []string{}
 				defaultChannelIDs = false

@@ -31,6 +31,8 @@ func processDB(channelID string, ccr cubeCounterRequest, userGetter map[string]s
 	var consecutiveTimeTimer3 time.Duration = 0
 	var roleDistributionTimer1 time.Duration = 0
 	var roleDistributionTimer2 time.Duration = 0
+
+	rowsStart := time.Now()
 	for rows.Next() {
 		var messageID string
 		var channelID string
@@ -150,6 +152,8 @@ func processDB(channelID string, ccr cubeCounterRequest, userGetter map[string]s
 		// hourlyActivity
 		ccB.hourlyActivity[msg.Date.Hour()] = ccB.hourlyActivity[msg.Date.Hour()] + 1
 	}
+	rowsEnd := time.Now()
+	utils.LOGGING(fmt.Sprintf("[%s] Looping over rows took: %v", channelID, rowsEnd.Sub(rowsStart)), "CCI.processDB")
 
 	utils.LOGGING(fmt.Sprintf("[%s] Counting total messages per person took: %v", channelID, totalMessagesTimer), "CCI.processDB")
 	utils.LOGGING(fmt.Sprintf("[%s] Adding or updating consecutive struct took: %v", channelID, consecutiveTimeTimer1), "CCI.processDB")
@@ -208,8 +212,7 @@ func createData(ccR cubeCounterRequest) []*cubeCounterData {
 	close(ch)
 	wg1.Wait()
 
-	utils.LOGGING("Reached this point", "CubeCounter.createData")
-	//fmt.Println(ccB)
+
 	utils.LOGGING(fmt.Sprintf("processDB took: %v", time.Since(now)), "CCI.createData")
 	return out
 }
