@@ -3,7 +3,6 @@ package cubecounterimage
 import (
 	"bytes"
 	"cci_grapher/config"
-	"cci_grapher/logging"
 	"cci_grapher/utils"
 	"fmt"
 	"image/png"
@@ -70,11 +69,11 @@ func CCI(s *discordgo.Session, e *discordgo.MessageCreate) {
 
 	var b bytes.Buffer
 	if err := png.Encode(&b, finalImage); err != nil {
-		logging.ERROR("An error occurred trying to convert the image to a reader:\n"+err.Error(), "cc._cci")
+		utils.ERROR("An error occurred trying to convert the image to a reader:\n"+err.Error(), "cc._cci")
 		return
 	}
 	stop5 := time.Now()
-	logging.LOGGING(fmt.Sprintf("Encoding took: %v", stop5.Sub(stop4)), "CCI")
+	utils.LOGGING(fmt.Sprintf("Encoding took: %v", stop5.Sub(stop4)), "CCI")
 	var elapsed time.Duration = time.Since(start)
 
 	_, err := s.ChannelMessageSendComplex(e.ChannelID, &discordgo.MessageSend{
@@ -88,7 +87,7 @@ func CCI(s *discordgo.Session, e *discordgo.MessageCreate) {
 		Embed: createEmbed(ccR, e.Author, elapsed),
 	})
 	if err != nil {
-		logging.ERROR(fmt.Sprintf("Could not send message in %s", e.ChannelID), "cubecounter.CCI")
+		utils.ERROR(fmt.Sprintf("Could not send message in %s", e.ChannelID), "cubecounter.CCI")
 		return
 	}
 

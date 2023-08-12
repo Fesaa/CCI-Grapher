@@ -1,7 +1,7 @@
 package cubecounterimage
 
 import (
-	"cci_grapher/logging"
+	"cci_grapher/utils"
 	"fmt"
 	"github.com/bwmarrin/discordgo"
 	"image"
@@ -11,23 +11,23 @@ import (
 func handleRequest(ccR cubeCounterRequest, start time.Time) (image.Image, time.Time) {
 	var ccB *cubeCounterData = createData(ccR)
 	stop1 := time.Now()
-	logging.LOGGING(fmt.Sprintf("createData took: %v", stop1.Sub(start)), "CCI.handleRequest")
+	utils.LOGGING(fmt.Sprintf("createData took: %v", stop1.Sub(start)), "CCI.handleRequest")
 
 	var imgData imageData = toImageData(ccB)
 	stop2 := time.Now()
-	logging.LOGGING(fmt.Sprintf("toImageData took: %v", stop2.Sub(stop1)), "CCI.handleRequest")
+	utils.LOGGING(fmt.Sprintf("toImageData took: %v", stop2.Sub(stop1)), "CCI.handleRequest")
 
 	var imgArray []image.Image = toImages(imgData)
 	stop3 := time.Now()
-	logging.LOGGING(fmt.Sprintf("toImages took: %v", stop3.Sub(stop2)), "CCI.handleRequest")
+	utils.LOGGING(fmt.Sprintf("toImages took: %v", stop3.Sub(stop2)), "CCI.handleRequest")
 	if imgArray == nil {
-		logging.ERROR("toImages returned nil. Cannot proceed", "CCI.handleRequest")
+		utils.ERROR("toImages returned nil. Cannot proceed", "CCI.handleRequest")
 		return nil, time.Now()
 	}
 
 	var finalImage image.Image = imageMerge(imgArray, ccR)
 	stop4 := time.Now()
-	logging.LOGGING(fmt.Sprintf("imageMerge took: %v", stop4.Sub(stop3)), "CCI.handleRequest")
+	utils.LOGGING(fmt.Sprintf("imageMerge took: %v", stop4.Sub(stop3)), "CCI.handleRequest")
 	return finalImage, stop4
 }
 

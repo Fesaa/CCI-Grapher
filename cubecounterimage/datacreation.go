@@ -2,7 +2,7 @@ package cubecounterimage
 
 import (
 	"cci_grapher/db"
-	"cci_grapher/logging"
+	"cci_grapher/utils"
 	"fmt"
 	"strings"
 	"sync"
@@ -15,15 +15,12 @@ func processDB(channelID string, ccB *cubeCounterData, ccr cubeCounterRequest, u
 	defer wg.Done()
 
 	now := time.Now()
-	rows, e := db.GetAllMessagesBetweenForChannel.Query(
-		ccr.startDate.Format("2006-01-02 15:04:05"),
-		ccr.endDate.Format("2006-01-02 15:04:05"),
-		channelID)
+	rows, e := db.GetAllMessagesBetweenForChannel(ccr.startDate, ccr.endDate, channelID)
 	if e != nil {
-		logging.ERROR("An error occurred trying to fetch data from "+channelID+"\n"+e.Error(), "CubeCounter.createImg")
+		utils.ERROR("An error occurred trying to fetch data from "+channelID+"\n"+e.Error(), "CubeCounter.createImg")
 		return
 	}
-	logging.LOGGING(fmt.Sprintf("Getting data from channel_db took: %v", time.Since(now)), "CCI.processDB")
+	utils.LOGGING(fmt.Sprintf("Getting data from channel_db took: %v", time.Since(now)), "CCI.processDB")
 
 	var activeMembers = map[string]ActiveMembersStruct{}
 
@@ -41,17 +38,17 @@ func processDB(channelID string, ccB *cubeCounterData, ccr cubeCounterRequest, u
 		var rolesString string
 		err := rows.Scan(&messageID, &channelID, &userID, &rolesString, &tString)
 		if err != nil {
-			logging.ERROR("An error occurred trying to scan from rows." + err.Error(), "CubeCounter.processDB")
+			utils.ERROR("An error occurred trying to scan from rows."+err.Error(), "CubeCounter.processDB")
 			return
 		}
 
 		t, err := time.Parse("2006-01-02T15:04:05.999Z", strings.TrimSuffix(strings.Split(tString, "+")[0], " "))
 		if err != nil {
-			logging.ERROR("Error parsing time;\n "+err.Error(), "CubeCounter.processDB")
+			utils.ERROR("Error parsing time;\n "+err.Error(), "CubeCounter.processDB")
 			continue
 		}
 
-		var userName string = userGetter[userID]
+		var userName = userGetter[userID]
 
 		msg := MessageEntry{
 			Date:     t,
@@ -153,20 +150,20 @@ func processDB(channelID string, ccB *cubeCounterData, ccr cubeCounterRequest, u
 		ccB.hourlyActivity[msg.Date.Hour()] = ccB.hourlyActivity[msg.Date.Hour()] + 1
 	}
 
-	logging.LOGGING(fmt.Sprintf("Counting total messages per person took: %v", totalMessagesTimer), "CCI.processDB")
-	logging.LOGGING(fmt.Sprintf("Adding or updating consecutive struct took: %v", consecutiveTimeTimer1), "CCI.processDB")
-	logging.LOGGING(fmt.Sprintf("Looping over active members took: %v", consecutiveTimeTimer2), "CCI.processDB")
-	logging.LOGGING(fmt.Sprintf("Removing inactive members took: %v", consecutiveTimeTimer3), "CCI.processDB")
-	logging.LOGGING(fmt.Sprintf("Looping over user roles took: %v", roleDistributionTimer1), "CCI.processDB")
-	logging.LOGGING(fmt.Sprintf("Checking special roles took: %v", roleDistributionTimer1), "CCI.processDB")
+	utils.LOGGING(fmt.Sprintf("Counting total messages per person took: %v", totalMessagesTimer), "CCI.processDB")
+	utils.LOGGING(fmt.Sprintf("Adding or updating consecutive struct took: %v", consecutiveTimeTimer1), "CCI.processDB")
+	utils.LOGGING(fmt.Sprintf("Looping over active members took: %v", consecutiveTimeTimer2), "CCI.processDB")
+	utils.LOGGING(fmt.Sprintf("Removing inactive members took: %v", consecutiveTimeTimer3), "CCI.processDB")
+	utils.LOGGING(fmt.Sprintf("Looping over user roles took: %v", roleDistributionTimer1), "CCI.processDB")
+	utils.LOGGING(fmt.Sprintf("Checking special roles took: %v", roleDistributionTimer1), "CCI.processDB")
 
 }
 
 func createData(ccR cubeCounterRequest) *cubeCounterData {
 	now := time.Now()
-	data, e := db.GetUsernames.Query()
+	data, e := db.GetAllUsernames()
 	if e != nil {
-		logging.ERROR("An error occurred trying to prepare the username database."+e.Error(), "CubeCounter.createData")
+		utils.ERROR("An error occurred trying to prepare the username database."+e.Error(), "CubeCounter.createData")
 		return &cubeCounterData{}
 	}
 
@@ -176,12 +173,12 @@ func createData(ccR cubeCounterRequest) *cubeCounterData {
 		var userId string
 		err := data.Scan(&userId, &username)
 		if err != nil {
-			logging.ERROR("An error occurred trying to scan from data", "CubeCounter.createData")
+			utils.ERROR("An error occurred trying to scan from data", "CubeCounter.createData")
 			return nil
 		}
 		usernames[userId] = username
 	}
-	logging.LOGGING(fmt.Sprintf("Making usernames map took: %v", time.Since(now)), "CCI.createData")
+	utils.LOGGING(fmt.Sprintf("Making usernames map took: %v", time.Since(now)), "CCI.createData")
 
 	now = time.Now()
 	var ccB = cubeCounterData{
@@ -199,16 +196,16 @@ func createData(ccR cubeCounterRequest) *cubeCounterData {
 	for hour := 0; hour < 24; hour++ {
 		ccB.hourlyActivity[hour] = 0
 	}
-	logging.LOGGING(fmt.Sprintf("Making cubeCounterData took: %v", time.Since(now)), "CCI.createData")
+	utils.LOGGING(fmt.Sprintf("Making cubeCounterData took: %v", time.Since(now)), "CCI.createData")
 
 	now = time.Now()
 	wg := sync.WaitGroup{}
 	wg.Add(len(ccR.channelIDs))
 	for _, c := range ccR.channelIDs {
-		logging.INFO(fmt.Sprintf("Starting `processDB` for channelID: \"%s\"", c), "CubeCounter.createData")
+		utils.INFO(fmt.Sprintf("Starting `processDB` for channelID: \"%s\"", c), "CubeCounter.createData")
 		go processDB(c, &ccB, ccR, usernames, &wg)
 	}
-	logging.LOGGING(fmt.Sprintf("processDB took: %v", time.Since(now)), "CCI.createData")
+	utils.LOGGING(fmt.Sprintf("processDB took: %v", time.Since(now)), "CCI.createData")
 
 	wg.Wait()
 	return &ccB

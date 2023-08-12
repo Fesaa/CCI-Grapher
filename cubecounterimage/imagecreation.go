@@ -1,7 +1,6 @@
 package cubecounterimage
 
 import (
-	"cci_grapher/logging"
 	"cci_grapher/utils"
 	"fmt"
 	"image"
@@ -39,12 +38,12 @@ func toImages(iD imageData) []image.Image {
 	totalMessagesCollector := &chart.ImageWriter{}
 	err := totalMessagesChart.Render(chart.PNG, totalMessagesCollector)
 	if err != nil {
-		logging.ERROR("Could not Render Total Messages chart:\n"+err.Error(), "cubecounterimage.toImages")
+		utils.ERROR("Could not Render Total Messages chart:\n"+err.Error(), "cubecounterimage.toImages")
 		return nil
 	}
 	totalMessagesImage, err := totalMessagesCollector.Image()
 	if err != nil {
-		logging.ERROR("Could not collect Total Messages chart:\n"+err.Error(), "cubecounterimage.toImages")
+		utils.ERROR("Could not collect Total Messages chart:\n"+err.Error(), "cubecounterimage.toImages")
 		return nil
 	}
 
@@ -65,12 +64,12 @@ func toImages(iD imageData) []image.Image {
 	consecutiveTimeCollector := &chart.ImageWriter{}
 	err = consecutiveTimeChart.Render(chart.PNG, consecutiveTimeCollector)
 	if err != nil {
-		logging.ERROR("Could not Render Consecutive Time chart:\n"+err.Error(), "cubecounterimage.toImages")
+		utils.ERROR("Could not Render Consecutive Time chart:\n"+err.Error(), "cubecounterimage.toImages")
 		return nil
 	}
 	consecutiveTimeImage, err := consecutiveTimeCollector.Image()
 	if err != nil {
-		logging.ERROR("Could not collect Consecutive Time chart:\n"+err.Error(), "cubecounterimage.toImages")
+		utils.ERROR("Could not collect Consecutive Time chart:\n"+err.Error(), "cubecounterimage.toImages")
 		return nil
 	}
 
@@ -91,12 +90,12 @@ func toImages(iD imageData) []image.Image {
 	roleDistributionCollector := &chart.ImageWriter{}
 	err = roleDistributionChart.Render(chart.PNG, roleDistributionCollector)
 	if err != nil {
-		logging.ERROR("Could not Render Role Distribution chart:\n"+err.Error(), "cubecounterimage.toImages")
+		utils.ERROR("Could not Render Role Distribution chart:\n"+err.Error(), "cubecounterimage.toImages")
 		return nil
 	}
 	roleDistributionImage, err := roleDistributionCollector.Image()
 	if err != nil {
-		logging.ERROR("Could not collect Role Distribution chart:\n"+err.Error(), "cubecounterimage.toImages")
+		utils.ERROR("Could not collect Role Distribution chart:\n"+err.Error(), "cubecounterimage.toImages")
 		return nil
 	}
 
@@ -120,12 +119,12 @@ func toImages(iD imageData) []image.Image {
 	hourlyActivityCollector := &chart.ImageWriter{}
 	err = hourlyActivityChart.Render(chart.PNG, hourlyActivityCollector)
 	if err != nil {
-		logging.ERROR("Could not Render Hourly Activity chart:\n"+err.Error(), "cubecounterimage.toImages")
+		utils.ERROR("Could not Render Hourly Activity chart:\n"+err.Error(), "cubecounterimage.toImages")
 		return nil
 	}
 	hourlyActivityImage, err := hourlyActivityCollector.Image()
 	if err != nil {
-		logging.ERROR("Could not collect Hourly Activity chart:\n"+err.Error(), "cubecounterimage.toImages")
+		utils.ERROR("Could not collect Hourly Activity chart:\n"+err.Error(), "cubecounterimage.toImages")
 		return nil
 	}
 
