@@ -1,11 +1,14 @@
 package cubecounterimage
 
 import (
+	"cci_grapher/config"
 	"cci_grapher/utils"
 	"fmt"
-	"github.com/bwmarrin/discordgo"
 	"image"
+	"strings"
 	"time"
+
+	"github.com/bwmarrin/discordgo"
 )
 
 func handleRequest(ccR cubeCounterRequest, start time.Time) (image.Image, time.Time) {
@@ -40,8 +43,13 @@ func handleRequest(ccR cubeCounterRequest, start time.Time) (image.Image, time.T
 }
 
 func createEmbed(ccR cubeCounterRequest, Author *discordgo.User, elapsed time.Duration) *discordgo.MessageEmbed {
-	StartDate := ccR.startDate
-	EndDate := ccR.endDate
+
+	description := fmt.Sprintf("Start date: %v %d\nEnd Date: %v %d",
+	ccR.startDate.Month().String(), ccR.startDate.Day(), ccR.endDate.Month().String(), ccR.endDate.Day())
+	if len(ccR.channelIDs) != len(config.CC.ChannelIDs) {
+		description += "\nChannels: " + strings.Join(ccR.channelIDs, ", ")
+	}
+
 	embed := discordgo.MessageEmbed{
 		Title: "Cube Counter Request",
 		Thumbnail: &discordgo.MessageEmbedThumbnail{
@@ -51,7 +59,7 @@ func createEmbed(ccR cubeCounterRequest, Author *discordgo.User, elapsed time.Du
 			Name:    Author.Username,
 			IconURL: Author.AvatarURL(""),
 		},
-		Description: fmt.Sprintf("Start date: %v %d\nEnd Date: %v %d", StartDate.Month().String(), StartDate.Day(), EndDate.Month().String(), EndDate.Day()),
+		Description: description,
 		Timestamp:   time.Now().Format(time.RFC3339),
 		Color:       0x6A56F6,
 		Footer: &discordgo.MessageEmbedFooter{
