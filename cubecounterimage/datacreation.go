@@ -19,7 +19,7 @@ func (ccR *cubeCounterRequest) createData(db *db.DataBase) *cubeCounterData {
 
 	var out cubeCounterData = GetCubeCounterDate()
 	for _, c := range ccR.channelIDs {
-		e := processDB(c, ccR, usernames, &out, db)
+		e := ccR.processDB(c, usernames, &out, db)
 		if e != nil {
 			utils.ERROR("An error occurred trying to process the database for channel "+c, "CubeCounter.createData")
 			return nil
@@ -29,7 +29,7 @@ func (ccR *cubeCounterRequest) createData(db *db.DataBase) *cubeCounterData {
 	return &out
 }
 
-func processDB(channelID string, ccr *cubeCounterRequest, userGetter map[string]string, ccB *cubeCounterData, db *db.DataBase) error {
+func (ccr *cubeCounterRequest) processDB(channelID string, userGetter map[string]string, ccB *cubeCounterData, db *db.DataBase) error {
 	var activeMembers = map[string]ActiveMembersStruct{}
 	rowsStart := time.Now()
 	var lastID string = "0"
