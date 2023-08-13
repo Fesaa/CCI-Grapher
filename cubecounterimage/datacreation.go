@@ -24,13 +24,16 @@ func (ccR *cubeCounterRequest) createData(db *db.DataBase) *cubeCounterData {
 	wg.Add(len(ccR.channelIDs))
 	ch := make(chan Message)
 
-	go merger(ch, &out)
+	wg1 := sync.WaitGroup{}
+	wg1.Add(1)
+	go merger(ch, &out, &wg1)
 	for _, c := range ccR.channelIDs {
 		go ccR.processDB(c, usernames, db, &wg, ch)
 	}
 	
 	wg.Wait()
 	close(ch)
+	wg1.Wait()
 	utils.LOGGING(fmt.Sprintf("Making cubeCounterData took: %v", time.Since(now)), "CCI.createData")
 	return &out
 }
@@ -65,7 +68,8 @@ func (ccr *cubeCounterRequest) processDB(channelID string, userGetter map[string
 }
 
 
-func merger(ch chan Message, out *cubeCounterData) {
+func merger(ch chan Message, out *cubeCounterData, wg *sync.WaitGroup) {
+	defer wg.Done()
 	for msg := range ch {
 		switch msg.cubeCounterDataType {
 		case RoleDistribution:
