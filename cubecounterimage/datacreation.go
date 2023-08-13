@@ -9,7 +9,7 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-func createData(ccR cubeCounterRequest, db *db.DataBase) *cubeCounterData {
+func (ccR *cubeCounterRequest) createData(db *db.DataBase) *cubeCounterData {
 	usernames, e := db.GetAllUsernames()
 	if e != nil {
 		utils.ERROR("An error occurred trying to prepare the username database."+e.Error(), "CubeCounter.createData")
@@ -29,7 +29,7 @@ func createData(ccR cubeCounterRequest, db *db.DataBase) *cubeCounterData {
 	return &out
 }
 
-func processDB(channelID string, ccr cubeCounterRequest, userGetter map[string]string, ccB *cubeCounterData, db *db.DataBase) error {
+func processDB(channelID string, ccr *cubeCounterRequest, userGetter map[string]string, ccB *cubeCounterData, db *db.DataBase) error {
 	var activeMembers = map[string]ActiveMembersStruct{}
 	rowsStart := time.Now()
 	var lastID string = "0"

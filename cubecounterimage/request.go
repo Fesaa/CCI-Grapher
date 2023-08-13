@@ -12,8 +12,8 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-func handleRequest(ccR cubeCounterRequest, start time.Time, db *db.DataBase) (image.Image, time.Time) {
-	var ccB *cubeCounterData = createData(ccR, db)
+func (ccR *cubeCounterRequest) handleRequest(start time.Time, db *db.DataBase) (image.Image, time.Time) {
+	var ccB *cubeCounterData = ccR.createData(db)
 	stop1 := time.Now()
 	if ccB == nil {
 		utils.ERROR("createData returned nil. Cannot proceed", "CCI.handleRequest")
@@ -21,7 +21,7 @@ func handleRequest(ccR cubeCounterRequest, start time.Time, db *db.DataBase) (im
 	}
 	utils.LOGGING(fmt.Sprintf("createData took: %v", stop1.Sub(start)), "CCI.handleRequest")
 
-	var imgData *imageData = toImageData(ccB)
+	var imgData *imageData = ccB.toImageData()
 	stop2 := time.Now()
 	if imgData == nil {
 		utils.ERROR("toImageData returned nil. Cannot proceed", "CCI.handleRequest")
@@ -29,7 +29,7 @@ func handleRequest(ccR cubeCounterRequest, start time.Time, db *db.DataBase) (im
 	}
 	utils.LOGGING(fmt.Sprintf("toImageData took: %v", stop2.Sub(stop1)), "CCI.handleRequest")
 
-	var imgArray []image.Image = toImages(imgData)
+	var imgArray []image.Image = imgData.toImages()
 	stop3 := time.Now()
 	if imgArray == nil {
 		utils.ERROR("toImages returned nil. Cannot proceed", "CCI.handleRequest")
@@ -37,14 +37,13 @@ func handleRequest(ccR cubeCounterRequest, start time.Time, db *db.DataBase) (im
 	}
 	utils.LOGGING(fmt.Sprintf("toImages took: %v", stop3.Sub(stop2)), "CCI.handleRequest")
 
-	var finalImage image.Image = imageMerge(imgArray, ccR)
+	var finalImage image.Image = ccR.imageMerge(imgArray)
 	stop4 := time.Now()
 	utils.LOGGING(fmt.Sprintf("imageMerge took: %v", stop4.Sub(stop3)), "CCI.handleRequest")
 	return finalImage, stop4
 }
 
-func createEmbed(ccR cubeCounterRequest, Author *discordgo.User, elapsed time.Duration) *discordgo.MessageEmbed {
-
+func (ccR *cubeCounterRequest) createEmbed(Author *discordgo.User, elapsed time.Duration) *discordgo.MessageEmbed {
 	description := fmt.Sprintf("Start date: %v %d\nEnd Date: %v %d",
 	ccR.startDate.Month().String(), ccR.startDate.Day(), ccR.endDate.Month().String(), ccR.endDate.Day())
 	if len(ccR.channelIDs) != len(config.Config.ChannelIDs) {

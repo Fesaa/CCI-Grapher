@@ -4,7 +4,7 @@ import (
 	"cci_grapher/utils"
 )
 
-func toImageData(ccB *cubeCounterData) *imageData {
+func (ccB *cubeCounterData) toImageData() *imageData {
 	var c map[string]float64 = make(map[string]float64)
 	for k, v := range ccB.consecutiveTime {
 		c[k] = utils.SumOfFloat64Array(v) / 3600

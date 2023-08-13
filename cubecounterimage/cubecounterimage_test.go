@@ -32,7 +32,7 @@ func TestDataCreation(t *testing.T) {
 
 	ccB := GetCubeCounterDate()
 	for _, c := range ccr.channelIDs {
-		processDB(c, ccr, usernames, &ccB, &db)
+		processDB(c, &ccr, usernames, &ccB, &db)
 	}
 
 	utils.SUCCESS("Finished processing database in: "+time.Since(now).String(), "CubeCounter.processDB")

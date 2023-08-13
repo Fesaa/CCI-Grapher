@@ -11,7 +11,7 @@ import (
 	"golang.org/x/image/math/fixed"
 )
 
-func imageMerge(imgs []image.Image, ccr cubeCounterRequest) image.Image {
+func (ccr *cubeCounterRequest) imageMerge(imgs []image.Image) image.Image {
 
 	titleString := fmt.Sprintf("From %v to %v (UTC)", ccr.startDate.Format(dataParse), ccr.endDate.Format(dataParse))
 

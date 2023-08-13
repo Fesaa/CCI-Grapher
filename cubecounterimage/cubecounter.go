@@ -66,7 +66,7 @@ func CCI(s *discordgo.Session, e *discordgo.MessageCreate, db *db.DataBase) {
 		endDate:    EndDate,
 	}
 	var start time.Time = time.Now()
-	finalImage, stop4 := handleRequest(ccR, start, db)
+	finalImage, stop4 := ccR.handleRequest(start, db)
 	if finalImage == nil {
 		utils.ERROR("An error occurred trying to handle the request, returned nil", "cc._cci")
 		return
@@ -89,7 +89,7 @@ func CCI(s *discordgo.Session, e *discordgo.MessageCreate, db *db.DataBase) {
 				Reader:      &b,
 			},
 		},
-		Embed: createEmbed(ccR, e.Author, elapsed),
+		Embed: ccR.createEmbed(e.Author, elapsed),
 	})
 	if err != nil {
 		utils.ERROR(fmt.Sprintf("Could not send message in %s", e.ChannelID), "cubecounter.CCI")
