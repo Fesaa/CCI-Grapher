@@ -17,7 +17,7 @@ type DataBase struct {
 }
 
 func (d *DataBase) Connect(psql string) error {
-	utils.INFO("Connecting to database", "db.Connect")
+	utils.INFO("Connecting to database", "server.Connect")
 
 	var err error
 	d.db, err = sql.Open("postgres", psql)
@@ -28,41 +28,31 @@ func (d *DataBase) Connect(psql string) error {
 	if err != nil {
 		return err
 	}
-	utils.SUCCESS("Connected to database", "server")
+	utils.SUCCESS("Connected to database", "server.Connect")
 	return nil
 }
 
 func (d *DataBase) Disconnect() error {
-	utils.INFO("Disconnecting from database", "server")
+	utils.INFO("Disconnecting from database", "server.Disconnect")
 	err := d.db.Close()
 	if err != nil {
 		return err
 	}
-	utils.SUCCESS("Disconnected from database", "server")
+	utils.SUCCESS("Disconnected from database", "server.Disconnect")
 	return nil
-}
-
-
-func Prepare(q string, db *sql.DB) (*sql.Stmt, error) {
-	r, e := db.Prepare(q)
-	if e == nil {
-		return r, e
-	} else {
-		return nil, e
-	}
 }
 
 func (d *DataBase) Init() error {
 	var e error
-	d.getUsernames, e = Prepare("SELECT user_id,username FROM usernames;", d.db)
+	d.getUsernames, e = d.db.Prepare("SELECT user_id,username FROM usernames;")
 	if e != nil {
 		return e
 	}
-	d.getAllMessagesBetweenForChannel, e = Prepare("SELECT message_id,user_id,roles,time FROM messages WHERE time BETWEEN $1 AND $2 AND channel_id = $3 LIMIT 10000;", d.db)
+	d.getAllMessagesBetweenForChannel, e = d.db.Prepare("SELECT message_id,user_id,roles,time FROM messages WHERE time BETWEEN $1 AND $2 AND channel_id = $3 LIMIT 10000;")
 	if e != nil {
 		return e
 	}
-	d.getAllMessagesBetweenForChannelFromID, e = Prepare("SELECT message_id,user_id,roles,time FROM messages WHERE time BETWEEN $1 AND $2 AND channel_id = $3 AND message_id > $4 LIMIT 10000;", d.db)
+	d.getAllMessagesBetweenForChannelFromID, e = d.db.Prepare("SELECT message_id,user_id,roles,time FROM messages WHERE time BETWEEN $1 AND $2 AND channel_id = $3 AND message_id > $4 LIMIT 10000;")
 	if e != nil {
 		return e
 	}
@@ -90,7 +80,7 @@ func (d *DataBase) GetAllUsernames() (map[string]string, error) {
 	now := time.Now()
 	data, e := d.getUsernames.Query()
 	if e != nil {
-		utils.ERROR("An error occurred trying to prepare the username database."+e.Error(), "CubeCounter.createData")
+		utils.ERROR("An error occurred trying to prepare the username database."+e.Error(), "server.GetAllUsernames")
 		return nil, e
 	}
 
@@ -100,11 +90,11 @@ func (d *DataBase) GetAllUsernames() (map[string]string, error) {
 		var userId string
 		err := data.Scan(&userId, &username)
 		if err != nil {
-			utils.ERROR("An error occurred trying to scan from data", "CubeCounter.createData")
+			utils.ERROR("An error occurred trying to scan from data", "server.GetAllUsernames")
 			return nil, e
 		}
 		usernames[userId] = username
 	}
-	utils.LOGGING(fmt.Sprintf("Making usernames map took: %v", time.Since(now)), "CCI.createData")
+	utils.LOGGING(fmt.Sprintf("Making usernames map took: %v", time.Since(now)), "server.GetAllUsernames")
 	return usernames, nil
 }

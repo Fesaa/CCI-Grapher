@@ -25,11 +25,6 @@ type ActiveMembersStruct struct {
 	lastTime  time.Time
 }
 
-type HourMinute struct {
-	Hour   int
-	Minute int
-}
-
 type cubeCounterData struct {
 	totalMessageCount int
 	totalMessages     map[string]int
