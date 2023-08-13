@@ -4,6 +4,7 @@ import (
 	"cci_grapher/db"
 	"cci_grapher/utils"
 	"fmt"
+	"sync"
 	"time"
 
 	_ "github.com/mattn/go-sqlite3"
@@ -17,19 +18,26 @@ func (ccR *cubeCounterRequest) createData(db *db.DataBase) *cubeCounterData {
 	}
 	now := time.Now()
 
+	
 	var out cubeCounterData = GetCubeCounterDate()
+	wg := sync.WaitGroup{}
+	wg.Add(len(ccR.channelIDs))
+	ch := make(chan Message)
+
+	go merger(ch, &out)
 	for _, c := range ccR.channelIDs {
-		e := ccR.processDB(c, usernames, &out, db)
-		if e != nil {
-			utils.ERROR("An error occurred trying to process the database for channel "+c, "CubeCounter.createData")
-			return nil
-		}
+		go ccR.processDB(c, usernames, db, &wg, ch)
 	}
+	
+	wg.Wait()
+	close(ch)
 	utils.LOGGING(fmt.Sprintf("Making cubeCounterData took: %v", time.Since(now)), "CCI.createData")
 	return &out
 }
 
-func (ccr *cubeCounterRequest) processDB(channelID string, userGetter map[string]string, ccB *cubeCounterData, db *db.DataBase) error {
+func (ccr *cubeCounterRequest) processDB(channelID string, userGetter map[string]string,
+										db *db.DataBase, wg *sync.WaitGroup, ch chan Message) {
+	defer wg.Done()
 	var activeMembers = map[string]ActiveMembersStruct{}
 	rowsStart := time.Now()
 	var lastID string = "0"
@@ -42,17 +50,55 @@ func (ccr *cubeCounterRequest) processDB(channelID string, userGetter map[string
 		rows, e := db.GetAllMessagesBetweenForChannelFromID(ccr.startDate, ccr.endDate, channelID, lastID)
 		if e != nil {
 			utils.ERROR("An error occurred trying to fetch data from "+channelID+"\n"+e.Error(), "CubeCounter.createImg")
-			return e
+			return
 		}
-		lastID, countedRows, e = ccB.processRows(rows, userGetter, activeMembers)
+		lastID, countedRows, e = processRows(rows, userGetter, activeMembers, ch)
 		if e != nil {
 			utils.ERROR("An error occurred trying to process the rows."+e.Error(), "CubeCounter.processDB")
-			return e
+			return
 		}
 		rowsCounter += countedRows
 	}
 
 	rowsEnd := time.Now()
 	utils.LOGGING(fmt.Sprintf("[%s] Looping over %d rows in %d chunks took: %v", channelID, rowsCounter, chunkCounter, rowsEnd.Sub(rowsStart)), "CCI.processDB")
-	return nil
+}
+
+
+func merger(ch chan Message, out *cubeCounterData) {
+	for msg := range ch {
+		switch msg.cubeCounterDataType {
+		case RoleDistribution:
+			role := msg.data.(string)
+			if _, ok := out.roleDistribution[role]; !ok {
+				out.roleDistribution[role] = 1
+			} else {
+				out.roleDistribution[role]++
+			}
+		case HourlyActivity:
+			hour := msg.data.(int)
+			if _, ok := out.hourlyActivity[hour]; !ok {
+				out.hourlyActivity[hour] = 1
+			} else {
+				out.hourlyActivity[hour]++
+			}
+		case TotalMessageCount:
+			out.totalMessageCount++
+		case TotalMessages:
+			authorID := msg.data.(string)
+			if _, ok := out.totalMessages[authorID]; !ok {
+				out.totalMessages[authorID] = 1
+			} else {
+				out.totalMessages[authorID]++
+			}
+		case ConsecutiveTime:
+			authorID := msg.data.([]interface{})[0].(string)
+			time := msg.data.([]interface{})[1].(float64)
+			if _, ok := out.consecutiveTime[authorID]; !ok {
+				out.consecutiveTime[authorID] = []float64{time}
+			} else {
+				out.consecutiveTime[authorID] = append(out.consecutiveTime[authorID], time)
+			}
+		}
+	}
 }
