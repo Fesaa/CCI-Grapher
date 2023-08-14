@@ -6,8 +6,6 @@ import (
 	"fmt"
 	"sync"
 	"time"
-
-	_ "github.com/mattn/go-sqlite3"
 )
 
 func (ccR *cubeCounterRequest) createData(db *db.DataBase) *cubeCounterData {

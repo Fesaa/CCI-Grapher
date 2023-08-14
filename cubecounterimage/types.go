@@ -112,34 +112,34 @@ func AddRowInfo(msg MessageEntry, activeMembers map[string]ActiveMembersStruct, 
 	}
 
 	// roleDistribution calculations
-	var toAdd []string
 	var containsJava bool = false
 	var containsBedrock bool = false
 
-	for _, role := range msg.RolesIDs {
-		if _, ok := roles[role]; ok {
-			toAdd = append(toAdd, role)
-			ch <- Message{RoleDistribution, role}
-		}
-		if role == javaRole {
-			containsJava = true
-		}
-		if role == bedrockRole {
-			containsBedrock = true
-		}
-	}
+    if len(msg.RolesIDs) == 1 {
+        ch <- Message{RoleDistribution, "No roles"}
+    } else {
+        for _, role := range msg.RolesIDs {
+            if _, ok := roles[role]; ok {
+                ch <- Message{RoleDistribution, role}
+            }
+            if role == javaRole {
+                containsJava = true
+            }
+            if role == bedrockRole {
+                containsBedrock = true
+            }
+        }
 
-	if containsJava && !containsBedrock {
-		ch <- Message{RoleDistribution, "Java Only"}
-	} else if !containsJava && containsBedrock {
-		ch <- Message{RoleDistribution, "Bedrock Only"}
-	} else if containsJava && containsBedrock {
-		ch <- Message{RoleDistribution, "Dual"}
-	}
+        if containsJava && !containsBedrock {
+            ch <- Message{RoleDistribution, "Java Only"}
+        } else if !containsJava && containsBedrock {
+            ch <- Message{RoleDistribution, "Bedrock Only"}
+        } else if containsJava && containsBedrock {
+            ch <- Message{RoleDistribution, "Dual"}
+        }
 
-	if len(toAdd) == 0 {
-		ch <- Message{RoleDistribution, "No Roles"}
-	}
+    }
+
 
 	// hourlyActivity
 	ch <- Message{HourlyActivity, msg.Date.Hour()}
