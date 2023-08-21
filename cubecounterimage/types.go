@@ -11,6 +11,7 @@ type cubeCounterRequest struct {
 	channelIDs []string
 	startDate  time.Time
 	endDate    time.Time
+    userIDs    []string
 }
 
 type MessageEntry struct {

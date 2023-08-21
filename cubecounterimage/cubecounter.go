@@ -28,6 +28,7 @@ func CCI(s *discordgo.Session, e *discordgo.MessageCreate, db *db.DataBase) {
 	now := time.Now()
 
 	var channelIDs = config.Config.ChannelIDs
+    var userIDS = []string{}
 	var defaultChannelIDs bool = true
 	var StartDate time.Time = time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC).Add(time.Hour * 24 * -7)
 	var EndDate time.Time = time.Now()
@@ -41,8 +42,13 @@ func CCI(s *discordgo.Session, e *discordgo.MessageCreate, db *db.DataBase) {
 			}
 			channelIDs = append(channelIDs, p)
 		} else {
-			index = i
-			break
+            b, e := utils.MaybeDiscordID(p)
+            if b == true && e == nil {
+                userIDS = append(userIDS, p)
+            } else {
+			    index = i
+			    break
+            }
 		}
 	}
 
@@ -64,6 +70,7 @@ func CCI(s *discordgo.Session, e *discordgo.MessageCreate, db *db.DataBase) {
 		channelIDs: channelIDs,
 		startDate:  StartDate,
 		endDate:    EndDate,
+        userIDs:    userIDS,
 	}
 	var start time.Time = time.Now()
 	finalImage, stop4 := ccR.handleRequest(start, db)

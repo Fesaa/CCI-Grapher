@@ -4,6 +4,7 @@ import (
 	"cci_grapher/utils"
 	"database/sql"
 	"fmt"
+	"strings"
 	"time"
 
 	_ "github.com/lib/pq"
@@ -13,7 +14,9 @@ type DataBase struct {
 	db *sql.DB
 	getUsernames *sql.Stmt
 	getAllMessagesBetweenForChannel *sql.Stmt
+    getAllMessagesBetweenForChannelForUsers *sql.Stmt
 	getAllMessagesBetweenForChannelFromID *sql.Stmt
+    getAllMessagesBetweenForChannelFromIDForUsers *sql.Stmt
 }
 
 func (d *DataBase) Connect(psql string) error {
@@ -52,24 +55,44 @@ func (d *DataBase) Init() error {
 	if e != nil {
 		return e
 	}
+    d.getAllMessagesBetweenForChannelForUsers, e = d.db.Prepare("SELECT message_id,user_id,roles,time FROM messages WHERE time BETWEEN $1 AND $2 AND channel_id = $3 AND user_id IN ($4) LIMIT 10000;")
+    if e != nil {
+        return e
+    }
 	d.getAllMessagesBetweenForChannelFromID, e = d.db.Prepare("SELECT message_id,user_id,roles,time FROM messages WHERE time BETWEEN $1 AND $2 AND channel_id = $3 AND message_id > $4 LIMIT 10000;")
 	if e != nil {
 		return e
 	}
+    d.getAllMessagesBetweenForChannelFromIDForUsers, e = d.db.Prepare("SELECT message_id,user_id,roles,time FROM messages WHERE time BETWEEN $1 AND $2 AND channel_id = $3 AND message_id > $4 AND user_id IN ($5) LIMIT 10000;")
+    if e != nil {
+        return e
+    }
 
 	return nil
 }
 
-func (d *DataBase) GetAllMessagesBetweenForChannel(start time.Time, end time.Time, channelId string) (*sql.Rows, error) {
-	rows, err := d.getAllMessagesBetweenForChannel.Query(start.Format("2006-01-02 15:04:05"), end.Format("2006-01-02 15:04:05"), channelId)
-	if err != nil {
-		return nil, err
-	}
+func (d *DataBase) GetAllMessagesBetweenForChannel(start time.Time, end time.Time, channelId string, userIDs []string) (*sql.Rows, error) {
+    var rows *sql.Rows
+    var err error
+    if len(userIDs) != 0 {
+        rows, err = d.getAllMessagesBetweenForChannelForUsers.Query(start.Format("2006-01-02 15:04:05"), end.Format("2006-01-02 15:04:05"), channelId, strings.Join(userIDs, ","))
+    } else {
+	    rows, err = d.getAllMessagesBetweenForChannel.Query(start.Format("2006-01-02 15:04:05"), end.Format("2006-01-02 15:04:05"), channelId)
+    }
+    if err != nil {
+        return nil, err
+    }
 	return rows, nil
 }
 
-func (d *DataBase) GetAllMessagesBetweenForChannelFromID(start time.Time, end time.Time, channelId string, messageId string) (*sql.Rows, error) {
-	rows, err := d.getAllMessagesBetweenForChannelFromID.Query(start.Format("2006-01-02 15:04:05"), end.Format("2006-01-02 15:04:05"), channelId, messageId)
+func (d *DataBase) GetAllMessagesBetweenForChannelFromID(start time.Time, end time.Time, channelId string, messageId string, userIDs []string) (*sql.Rows, error) {
+    var rows *sql.Rows
+    var err error
+    if len(userIDs) != 0 {
+        rows, err = d.getAllMessagesBetweenForChannelFromIDForUsers.Query(start.Format("2006-01-02 15:04:05"), end.Format("2006-01-02 15:04:05"), channelId, messageId, strings.Join(userIDs, ","))
+    } else {
+	    rows, err = d.getAllMessagesBetweenForChannelFromID.Query(start.Format("2006-01-02 15:04:05"), end.Format("2006-01-02 15:04:05"), channelId, messageId)
+    }
 	if err != nil {
 		return nil, err
 	}

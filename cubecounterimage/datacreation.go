@@ -48,7 +48,7 @@ func (ccr *cubeCounterRequest) processDB(channelID string, userGetter map[string
 
 	for lastID != "" {
 		chunkCounter++
-		rows, e := db.GetAllMessagesBetweenForChannelFromID(ccr.startDate, ccr.endDate, channelID, lastID)
+		rows, e := db.GetAllMessagesBetweenForChannelFromID(ccr.startDate, ccr.endDate, channelID, lastID, ccr.userIDs)
 		if e != nil {
 			utils.ERROR("An error occurred trying to fetch data from "+channelID+"\n"+e.Error(), "CubeCounter.createImg")
 			return

@@ -137,6 +137,19 @@ func (iD *imageData) toImages() []image.Image {
 }
 
 func barChartMaker(title string, bars []chart.Value) chart.BarChart {
+    i := float64(0)
+    for len(bars) < 2 {
+        i += 0.001
+		bars = append(bars, chart.Value{
+			Label: "",
+			Value: i,
+			Style: chart.Style{
+				FillColor:   colourMap[0],
+				StrokeColor: colourMap[0],
+				DotColor:    colourMap[0],
+			},
+		})
+    }
 	return chart.BarChart{
 		Title: title,
 		TitleStyle: chart.Style{
