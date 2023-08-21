@@ -55,7 +55,7 @@ func (d *DataBase) Init() error {
 	if e != nil {
 		return e
 	}
-    d.getAllMessagesBetweenForChannelForUsers, e = d.db.Prepare("SELECT message_id,user_id,roles,time FROM messages WHERE time BETWEEN $1 AND $2 AND channel_id = $3 AND user_id IN ($4) LIMIT 10000;")
+    d.getAllMessagesBetweenForChannelForUsers, e = d.db.Prepare("SELECT message_id,user_id,roles,time FROM messages WHERE time BETWEEN $1 AND $2 AND channel_id = $3 AND user_id = ANY($4) LIMIT 10000;")
     if e != nil {
         return e
     }
@@ -63,7 +63,7 @@ func (d *DataBase) Init() error {
 	if e != nil {
 		return e
 	}
-    d.getAllMessagesBetweenForChannelFromIDForUsers, e = d.db.Prepare("SELECT message_id,user_id,roles,time FROM messages WHERE time BETWEEN $1 AND $2 AND channel_id = $3 AND message_id > $4 AND user_id IN ($5) LIMIT 10000;")
+    d.getAllMessagesBetweenForChannelFromIDForUsers, e = d.db.Prepare("SELECT message_id,user_id,roles,time FROM messages WHERE time BETWEEN $1 AND $2 AND channel_id = $3 AND message_id > $4 AND user_id = ANY($5) LIMIT 10000;")
     if e != nil {
         return e
     }
@@ -75,7 +75,7 @@ func (d *DataBase) GetAllMessagesBetweenForChannel(start time.Time, end time.Tim
     var rows *sql.Rows
     var err error
     if len(userIDs) != 0 {
-        rows, err = d.getAllMessagesBetweenForChannelForUsers.Query(start.Format("2006-01-02 15:04:05"), end.Format("2006-01-02 15:04:05"), channelId, strings.Join(userIDs, ","))
+        rows, err = d.getAllMessagesBetweenForChannelForUsers.Query(start.Format("2006-01-02 15:04:05"), end.Format("2006-01-02 15:04:05"), channelId, userIDs)
     } else {
 	    rows, err = d.getAllMessagesBetweenForChannel.Query(start.Format("2006-01-02 15:04:05"), end.Format("2006-01-02 15:04:05"), channelId)
     }
@@ -89,7 +89,7 @@ func (d *DataBase) GetAllMessagesBetweenForChannelFromID(start time.Time, end ti
     var rows *sql.Rows
     var err error
     if len(userIDs) != 0 {
-        rows, err = d.getAllMessagesBetweenForChannelFromIDForUsers.Query(start.Format("2006-01-02 15:04:05"), end.Format("2006-01-02 15:04:05"), channelId, messageId, strings.Join(userIDs, ","))
+        rows, err = d.getAllMessagesBetweenForChannelFromIDForUsers.Query(start.Format("2006-01-02 15:04:05"), end.Format("2006-01-02 15:04:05"), channelId, messageId, userIDs)
     } else {
 	    rows, err = d.getAllMessagesBetweenForChannelFromID.Query(start.Format("2006-01-02 15:04:05"), end.Format("2006-01-02 15:04:05"), channelId, messageId)
     }
