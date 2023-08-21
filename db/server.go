@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	_ "github.com/lib/pq"
+	"github.com/lib/pq"
 )
 
 type DataBase struct {
@@ -74,7 +74,7 @@ func (d *DataBase) GetAllMessagesBetweenForChannel(start time.Time, end time.Tim
     var rows *sql.Rows
     var err error
     if len(userIDs) != 0 {
-        rows, err = d.getAllMessagesBetweenForChannelForUsers.Query(start.Format("2006-01-02 15:04:05"), end.Format("2006-01-02 15:04:05"), channelId, userIDs)
+        rows, err = d.getAllMessagesBetweenForChannelForUsers.Query(start.Format("2006-01-02 15:04:05"), end.Format("2006-01-02 15:04:05"), channelId, pq.Array(userIDs))
     } else {
 	    rows, err = d.getAllMessagesBetweenForChannel.Query(start.Format("2006-01-02 15:04:05"), end.Format("2006-01-02 15:04:05"), channelId)
     }
@@ -88,7 +88,7 @@ func (d *DataBase) GetAllMessagesBetweenForChannelFromID(start time.Time, end ti
     var rows *sql.Rows
     var err error
     if len(userIDs) != 0 {
-        rows, err = d.getAllMessagesBetweenForChannelFromIDForUsers.Query(start.Format("2006-01-02 15:04:05"), end.Format("2006-01-02 15:04:05"), channelId, messageId, userIDs)
+        rows, err = d.getAllMessagesBetweenForChannelFromIDForUsers.Query(start.Format("2006-01-02 15:04:05"), end.Format("2006-01-02 15:04:05"), channelId, messageId, pq.Array(userIDs))
     } else {
 	    rows, err = d.getAllMessagesBetweenForChannelFromID.Query(start.Format("2006-01-02 15:04:05"), end.Format("2006-01-02 15:04:05"), channelId, messageId)
     }
