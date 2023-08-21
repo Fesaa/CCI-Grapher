@@ -4,7 +4,6 @@ import (
 	"cci_grapher/utils"
 	"database/sql"
 	"fmt"
-	"strings"
 	"time"
 
 	_ "github.com/lib/pq"
