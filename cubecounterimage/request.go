@@ -29,7 +29,7 @@ func (ccR *cubeCounterRequest) handleRequest(start time.Time, db *db.DataBase) (
 	}
 	utils.LOGGING(fmt.Sprintf("toImageData took: %v", stop2.Sub(stop1)), "CCI.handleRequest")
 
-	var imgArray []image.Image = imgData.toImages()
+	var imgArray []image.Image = imgData.getImages(len(ccR.userIDs) != 0)
 	stop3 := time.Now()
 	if imgArray == nil {
 		utils.ERROR("toImages returned nil. Cannot proceed", "CCI.handleRequest")
@@ -37,7 +37,7 @@ func (ccR *cubeCounterRequest) handleRequest(start time.Time, db *db.DataBase) (
 	}
 	utils.LOGGING(fmt.Sprintf("toImages took: %v", stop3.Sub(stop2)), "CCI.handleRequest")
 
-	var finalImage image.Image = ccR.imageMerge(imgArray)
+	var finalImage image.Image = ccR.getFinalImage(imgArray)
 	stop4 := time.Now()
 	utils.LOGGING(fmt.Sprintf("imageMerge took: %v", stop4.Sub(stop3)), "CCI.handleRequest")
 	return finalImage, stop4

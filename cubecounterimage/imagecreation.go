@@ -18,19 +18,81 @@ var colourMap = map[int]drawing.Color{
 	4: chart.ColorAlternateBlue,
 }
 
-func (iD *imageData) toImages() []image.Image {
-	var imgs []image.Image
+func (iD *imageData) getImages(isUsers bool) []image.Image {
+    if isUsers {
+        return iD.toUserImages()
+    } else {
+        return iD.toImages()
+    }
+}
 
-	// Total messages
+func (iD *imageData) toUserImages() []image.Image {
+    iD.totalMessagesArray = append(iD.totalMessagesArray, "")
+    iD.totalMessages[""] = 0
+
+    totalMessagesImage, err := iD.getTotalMessagesImage()
+    if err != nil {
+        utils.ERROR("Generating Total Messages Image enocuntered an error. Cannot continue.", "cubecounterimage.toImages")
+        return nil
+    }
+
+    hourlyActivityImage, err := iD.getHourlyActivityImage()
+    if err != nil {
+        utils.ERROR("Generating Hourly Activity Image enocuntered an error. Cannot continue.", "cubecounterimage.toImages")
+        return nil
+    }
+
+	var imgs []image.Image
+    imgs = append(imgs, totalMessagesImage)
+    imgs = append(imgs, hourlyActivityImage)
+    return imgs
+}
+
+func (iD *imageData) toImages() []image.Image {
+    totalMessagesImage, err := iD.getTotalMessagesImage()
+    if err != nil {
+        utils.ERROR("Generating Total Messages Image enocuntered an error. Cannot continue.", "cubecounterimage.toImages")
+        return nil
+    }
+
+    consecutiveTimeImage, err := iD.getConsecutiveTimeImage()
+    if err != nil {
+        utils.ERROR("Generating Consecutive Time Image enocuntered an error. Cannot continue.", "cubecounterimage.toImages")
+        return nil
+    }
+
+    roleDistributionImage, err := iD.getRoleDistributionImage()
+    if err != nil {
+        utils.ERROR("Generating Role Distribution Image enocuntered an error. Cannot continue.", "cubecounterimage.toImages")
+        return nil
+    }
+
+    hourlyActivityImage, err := iD.getHourlyActivityImage()
+    if err != nil {
+        utils.ERROR("Generating Hourly Activity Image enocuntered an error. Cannot continue.", "cubecounterimage.toImages")
+        return nil
+    }
+
+    var imgs []image.Image
+	imgs = append(imgs, totalMessagesImage)
+	imgs = append(imgs, consecutiveTimeImage)
+	imgs = append(imgs, roleDistributionImage)
+	imgs = append(imgs, hourlyActivityImage)
+	return imgs
+
+}
+
+func (iD *imageData) getTotalMessagesImage() (image.Image, error) {
 	var totalMessagesBars []chart.Value
 	for i, v := range iD.totalMessagesArray {
+        idx := i / utils.Max(len(iD.totalMessagesArray) / 5, 1)
 		totalMessagesBars = append(totalMessagesBars, chart.Value{
 			Label: v,
 			Value: float64(iD.totalMessages[v]),
 			Style: chart.Style{
-				FillColor:   colourMap[i/5],
-				StrokeColor: colourMap[i/5],
-				DotColor:    colourMap[i/5],
+				FillColor:   colourMap[idx],
+				StrokeColor: colourMap[idx],
+				DotColor:    colourMap[idx],
 			},
 		})
 	}
@@ -38,17 +100,19 @@ func (iD *imageData) toImages() []image.Image {
 	totalMessagesCollector := &chart.ImageWriter{}
 	err := totalMessagesChart.Render(chart.PNG, totalMessagesCollector)
 	if err != nil {
-		utils.ERROR("Could not Render Total Messages chart:\n"+err.Error(), "cubecounterimage.toImages")
-		return nil
+		utils.ERROR("Could not Render Total Messages chart:\n"+err.Error(), "cubecounterimage.getTotalMessagesImage")
+		return nil, err
 	}
 	totalMessagesImage, err := totalMessagesCollector.Image()
 	if err != nil {
-		utils.ERROR("Could not collect Total Messages chart:\n"+err.Error(), "cubecounterimage.toImages")
-		return nil
+		utils.ERROR("Could not collect Total Messages chart:\n"+err.Error(), "cubecounterimage.getTotalMessagesImage")
+		return nil, err
 	}
+    return totalMessagesImage, nil
+}
 
-	// Consecutive time
-	var consecutiveTimeBars []chart.Value
+func (iD *imageData) getConsecutiveTimeImage() (image.Image, error) {
+    var consecutiveTimeBars []chart.Value
 	for i, v := range iD.consecutiveTimeArray {
 		consecutiveTimeBars = append(consecutiveTimeBars, chart.Value{
 			Label: v,
@@ -62,19 +126,21 @@ func (iD *imageData) toImages() []image.Image {
 	}
 	consecutiveTimeChart := barChartMaker("Consecutive Time (h)", consecutiveTimeBars)
 	consecutiveTimeCollector := &chart.ImageWriter{}
-	err = consecutiveTimeChart.Render(chart.PNG, consecutiveTimeCollector)
+    err := consecutiveTimeChart.Render(chart.PNG, consecutiveTimeCollector)
 	if err != nil {
-		utils.ERROR("Could not Render Consecutive Time chart:\n"+err.Error(), "cubecounterimage.toImages")
-		return nil
+		utils.ERROR("Could not Render Consecutive Time chart:\n"+err.Error(), "cubecounterimage.getConsecutiveTimeImage")
+		return nil, err
 	}
 	consecutiveTimeImage, err := consecutiveTimeCollector.Image()
 	if err != nil {
-		utils.ERROR("Could not collect Consecutive Time chart:\n"+err.Error(), "cubecounterimage.toImages")
-		return nil
+		utils.ERROR("Could not collect Consecutive Time chart:\n"+err.Error(), "cubecounterimage.getConsecutiveTimeImage")
+		return nil, err
 	}
+    return consecutiveTimeImage, nil
+}
 
-	// Role distribution
-	var roleDistributionBars []chart.Value
+func (iD *imageData) getRoleDistributionImage() (image.Image, error) {
+    var roleDistributionBars []chart.Value
 	for i, v := range iD.roleDistributionArray {
 		roleDistributionBars = append(roleDistributionBars, chart.Value{
 			Label: v,
@@ -88,18 +154,20 @@ func (iD *imageData) toImages() []image.Image {
 	}
 	roleDistributionChart := barChartMaker("Role Distribution (%)", roleDistributionBars)
 	roleDistributionCollector := &chart.ImageWriter{}
-	err = roleDistributionChart.Render(chart.PNG, roleDistributionCollector)
+    err := roleDistributionChart.Render(chart.PNG, roleDistributionCollector)
 	if err != nil {
-		utils.ERROR("Could not Render Role Distribution chart:\n"+err.Error(), "cubecounterimage.toImages")
-		return nil
+		utils.ERROR("Could not Render Role Distribution chart:\n"+err.Error(), "cubecounterimage.getRoleDistributionImage")
+		return nil, err
 	}
 	roleDistributionImage, err := roleDistributionCollector.Image()
 	if err != nil {
-		utils.ERROR("Could not collect Role Distribution chart:\n"+err.Error(), "cubecounterimage.toImages")
-		return nil
+		utils.ERROR("Could not collect Role Distribution chart:\n"+err.Error(), "cubecounterimage.getRoleDistributionImage")
+		return nil, err
 	}
+    return roleDistributionImage, nil
+}
 
-	// Hourly Activity
+func (iD *imageData) getHourlyActivityImage() (image.Image, error) {
 	var hourlyActivityBars []chart.Value
 	min, max := utils.MinMaxOfMap(iD.hourlyActivity)
 	for i := 0; i < 24; i++ {
@@ -117,39 +185,20 @@ func (iD *imageData) toImages() []image.Image {
 	}
 	hourlyActivityChart := barChartMaker("Hourly Activity (%)", hourlyActivityBars)
 	hourlyActivityCollector := &chart.ImageWriter{}
-	err = hourlyActivityChart.Render(chart.PNG, hourlyActivityCollector)
+    err := hourlyActivityChart.Render(chart.PNG, hourlyActivityCollector)
 	if err != nil {
-		utils.ERROR("Could not Render Hourly Activity chart:\n"+err.Error(), "cubecounterimage.toImages")
-		return nil
+		utils.ERROR("Could not Render Hourly Activity chart:\n"+err.Error(), "cubecounterimage.getHourlyActivityImage")
+		return nil, err
 	}
 	hourlyActivityImage, err := hourlyActivityCollector.Image()
 	if err != nil {
-		utils.ERROR("Could not collect Hourly Activity chart:\n"+err.Error(), "cubecounterimage.toImages")
-		return nil
+		utils.ERROR("Could not collect Hourly Activity chart:\n"+err.Error(), "cubecounterimage.getHourlyActivityImage")
+		return nil, err
 	}
-
-	imgs = append(imgs, totalMessagesImage)
-	imgs = append(imgs, consecutiveTimeImage)
-	imgs = append(imgs, roleDistributionImage)
-	imgs = append(imgs, hourlyActivityImage)
-	return imgs
-
+    return hourlyActivityImage, nil
 }
 
 func barChartMaker(title string, bars []chart.Value) chart.BarChart {
-    i := float64(0)
-    for len(bars) < 2 {
-        i += 0.001
-		bars = append(bars, chart.Value{
-			Label: "",
-			Value: i,
-			Style: chart.Style{
-				FillColor:   colourMap[0],
-				StrokeColor: colourMap[0],
-				DotColor:    colourMap[0],
-			},
-		})
-    }
 	return chart.BarChart{
 		Title: title,
 		TitleStyle: chart.Style{

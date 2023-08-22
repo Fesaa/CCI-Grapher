@@ -52,6 +52,10 @@ func CCI(s *discordgo.Session, e *discordgo.MessageCreate, db *db.DataBase) {
 		}
 	}
 
+    if len(userIDS) > 25 {
+        return
+    }
+
 	if len(parts) > index {
 		t, err := time.Parse(dataParse, parts[index])
 		if err == nil {
