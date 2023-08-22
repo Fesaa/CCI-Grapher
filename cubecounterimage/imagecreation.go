@@ -18,6 +18,11 @@ var colourMap = map[int]drawing.Color{
 	4: chart.ColorAlternateBlue,
 }
 
+func getColour(i int, div int) drawing.Color {
+    if i == 0 {return chart.ColorAlternateGray}
+    return colourMap[i / div]
+}
+
 func (iD *imageData) getImages(isUsers bool) []image.Image {
     if isUsers {
         return iD.toUserImages()
@@ -85,14 +90,13 @@ func (iD *imageData) toImages() []image.Image {
 func (iD *imageData) getTotalMessagesImage() (image.Image, error) {
 	var totalMessagesBars []chart.Value
 	for i, v := range iD.totalMessagesArray {
-        idx := i / utils.Max(len(iD.totalMessagesArray) / 5, 1)
 		totalMessagesBars = append(totalMessagesBars, chart.Value{
 			Label: v,
 			Value: float64(iD.totalMessages[v]),
 			Style: chart.Style{
-				FillColor:   colourMap[idx],
-				StrokeColor: colourMap[idx],
-				DotColor:    colourMap[idx],
+				FillColor:   getColour(i, len(iD.totalMessagesArray)),
+				StrokeColor: getColour(i, len(iD.totalMessagesArray)),
+				DotColor:    getColour(i, len(iD.totalMessagesArray)),
 			},
 		})
 	}
@@ -118,9 +122,9 @@ func (iD *imageData) getConsecutiveTimeImage() (image.Image, error) {
 			Label: v,
 			Value: iD.consecutiveTime[v],
 			Style: chart.Style{
-				FillColor:   colourMap[(i / 5)],
-				StrokeColor: colourMap[(i / 5)],
-				DotColor:    colourMap[(i / 5)],
+				FillColor:   getColour(i, 25),
+				StrokeColor: getColour(i, 25),
+				DotColor:    getColour(i, 25),
 			},
 		})
 	}
@@ -146,9 +150,9 @@ func (iD *imageData) getRoleDistributionImage() (image.Image, error) {
 			Label: v,
 			Value: float64(iD.roleDistribution[v]),
 			Style: chart.Style{
-				FillColor:   colourMap[(i / 5)],
-				StrokeColor: colourMap[(i / 5)],
-				DotColor:    colourMap[(i / 5)],
+				FillColor:   getColour(i, 25),
+				StrokeColor: getColour(i, 25),
+				DotColor:    getColour(i, 25),
 			},
 		})
 	}
@@ -177,9 +181,9 @@ func (iD *imageData) getHourlyActivityImage() (image.Image, error) {
 			Label: fmt.Sprintf("%d", i),
 			Value: v,
 			Style: chart.Style{
-				FillColor:   colourMap[c],
-				StrokeColor: colourMap[c],
-				DotColor:    colourMap[c],
+				FillColor:   getColour(c, 5),
+				StrokeColor: getColour(c, 5),
+				DotColor:    getColour(c, 5),
 			},
 		})
 	}
