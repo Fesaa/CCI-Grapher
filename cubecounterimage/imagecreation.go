@@ -96,9 +96,9 @@ func (iD *imageData) getTotalMessagesImage() (image.Image, error) {
 			Label: v,
 			Value: float64(val),
 			Style: chart.Style{
-				FillColor:   getColour(i, val),
-				StrokeColor: getColour(i, val),
-				DotColor:    getColour(i, val),
+				FillColor:   getColour(idx, val),
+				StrokeColor: getColour(idx, val),
+				DotColor:    getColour(idx, val),
 			},
 		})
 	}
