@@ -19,7 +19,7 @@ var colourMap = map[int]drawing.Color{
 }
 
 func getColour(i int, val int) drawing.Color {
-    if val == 0 { return chart.ColorAlternateLightGray }
+    if val == 0 { return chart.ColorAlternateGray }
     return colourMap[i%5]
 }
 
