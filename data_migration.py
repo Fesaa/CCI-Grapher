@@ -8,7 +8,7 @@ def chunk_list(lst, chunk_size):
     return [lst[i:i + chunk_size] for i in range(0, len(lst), chunk_size)]
 
 
-async def migrate(conn, file: str, i):
+async def migrate(conn, file: str, i: int) -> int:
     print(file)
     db = await asqlite.connect(f"./sql/{file}")
     async with db.cursor() as cursor:
@@ -25,6 +25,7 @@ async def migrate(conn, file: str, i):
                 i += 1
             query = query[:-1] + " ON CONFLICT DO NOTHING;"
             await conn.execute(query)
+    return i
 
 async def migrate_usernames(conn):
     db = await asqlite.connect(f"./sql/usernames.sql")
