@@ -18,6 +18,11 @@ var colourMap = map[int]drawing.Color{
 	4: chart.ColorAlternateBlue,
 }
 
+func getColour(i int, val int) drawing.Color {
+    if val == 0 { return chart.ColorAlternateLightGray }
+    return colourMap[i%5]
+}
+
 func (iD *imageData) getImages(isUsers bool) []image.Image {
     if isUsers {
         return iD.toUserImages()
@@ -86,13 +91,14 @@ func (iD *imageData) getTotalMessagesImage() (image.Image, error) {
 	var totalMessagesBars []chart.Value
 	for i, v := range iD.totalMessagesArray {
         idx := i / utils.Max(len(iD.totalMessagesArray) / 5, 1)
+        val := iD.totalMessages[v]
 		totalMessagesBars = append(totalMessagesBars, chart.Value{
 			Label: v,
-			Value: float64(iD.totalMessages[v]),
+			Value: float64(val),
 			Style: chart.Style{
-				FillColor:   colourMap[idx],
-				StrokeColor: colourMap[idx],
-				DotColor:    colourMap[idx],
+				FillColor:   getColour(i, val),
+				StrokeColor: getColour(i, val),
+				DotColor:    getColour(i, val),
 			},
 		})
 	}
