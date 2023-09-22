@@ -64,6 +64,12 @@ func CCI(s *discordgo.Session, e *discordgo.MessageCreate, db *db.DataBase) {
 			d, err := time.ParseDuration(parts[index])
 			if err == nil {
 				StartDate = now.Add(-d)
+			} else {
+				var days int
+				_, e := fmt.Sscanf(parts[index], "%dd", days)
+				if e != nil {
+					StartDate = now.Add(time.Duration(-days * 24 * int(time.Hour)))
+				}
 			}
 		}
 	}
@@ -75,6 +81,12 @@ func CCI(s *discordgo.Session, e *discordgo.MessageCreate, db *db.DataBase) {
 			d, err := time.ParseDuration(parts[index+1])
 			if err == nil {
 				EndDate = now.Add(-d)
+			} else {
+				var days int
+				_, e := fmt.Sscanf(parts[index+1], "%dd", days)
+				if e != nil {
+					EndDate = now.Add(time.Duration(-days * 24 * int(time.Hour)))
+				}
 			}
 		}
 	}
