@@ -7,6 +7,7 @@ import (
 	"cci_grapher/utils"
 	"fmt"
 	"image/png"
+	"strconv"
 	"strings"
 	"time"
 
@@ -57,34 +58,36 @@ func CCI(s *discordgo.Session, e *discordgo.MessageCreate, db *db.DataBase) {
 	}
 
 	if len(parts) > index {
-		t, err := time.Parse(dataParse, parts[index])
+		s := parts[index]
+		t, err := time.Parse(dataParse, s)
 		if err == nil {
 			StartDate = t
 		} else {
-			d, err := time.ParseDuration(parts[index])
+			d, err := time.ParseDuration(s)
 			if err == nil {
 				StartDate = now.Add(-d)
-			} else {
-				var days int
-				_, e := fmt.Sscanf(parts[index], "%dd", days)
-				if e != nil {
+			} else if strings.HasSuffix(s, "d") {
+				numStr := strings.TrimSuffix(s, "d")
+				days, err := strconv.Atoi(numStr)
+				if err == nil {
 					StartDate = now.Add(time.Duration(-days * 24 * int(time.Hour)))
 				}
 			}
 		}
 	}
 	if len(parts) > index+1 {
-		t, err := time.Parse(dataParse, parts[index+1])
+		s := parts[index+1]
+		t, err := time.Parse(dataParse, s)
 		if err == nil {
 			EndDate = t
 		} else {
-			d, err := time.ParseDuration(parts[index+1])
+			d, err := time.ParseDuration(s)
 			if err == nil {
 				EndDate = now.Add(-d)
-			} else {
-				var days int
-				_, e := fmt.Sscanf(parts[index+1], "%dd", days)
-				if e != nil {
+			} else if strings.HasSuffix(s, "d") {
+				numStr := strings.TrimSuffix(s, "d")
+				days, err := strconv.Atoi(numStr)
+				if err == nil {
 					EndDate = now.Add(time.Duration(-days * 24 * int(time.Hour)))
 				}
 			}
