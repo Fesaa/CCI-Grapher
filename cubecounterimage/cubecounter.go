@@ -62,8 +62,8 @@ func CCI(s *discordgo.Session, e *discordgo.MessageCreate, db *db.DataBase) {
 			StartDate = t
 		} else {
 			d, err := time.ParseDuration(parts[index])
-			if err == nil && d < 0 {
-				StartDate = now.Add(d)
+			if err == nil {
+				StartDate = now.Add(-d)
 			}
 		}
 	}
@@ -72,9 +72,9 @@ func CCI(s *discordgo.Session, e *discordgo.MessageCreate, db *db.DataBase) {
 		if err == nil {
 			EndDate = t
 		} else {
-			d, err := time.ParseDuration(parts[index])
-			if err == nil && d < 0 {
-				EndDate = now.Add(d)
+			d, err := time.ParseDuration(parts[index+1])
+			if err == nil {
+				EndDate = now.Add(-d)
 			}
 		}
 	}
