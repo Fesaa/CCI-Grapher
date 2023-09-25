@@ -4,7 +4,6 @@ import (
 	"cci_grapher/utils"
 	"fmt"
 	"image"
-	"math"
 
 	"github.com/wcharczuk/go-chart/v2"
 	"github.com/wcharczuk/go-chart/v2/drawing"
@@ -19,66 +18,68 @@ var colourMap = map[int]drawing.Color{
 }
 
 func getColour(i int, val int) drawing.Color {
-    if val == 0 { return chart.ColorAlternateGray }
-    return colourMap[i%5]
+	if val == 0 {
+		return chart.ColorAlternateGray
+	}
+	return colourMap[i%5]
 }
 
 func (iD *imageData) getImages(isUsers bool) []image.Image {
-    if isUsers {
-        return iD.toUserImages()
-    } else {
-        return iD.toImages()
-    }
+	if isUsers {
+		return iD.toUserImages()
+	} else {
+		return iD.toImages()
+	}
 }
 
 func (iD *imageData) toUserImages() []image.Image {
-    iD.totalMessagesArray = append(iD.totalMessagesArray, "")
-    iD.totalMessages[""] = 0
+	iD.totalMessagesArray = append(iD.totalMessagesArray, "")
+	iD.totalMessages[""] = 0
 
-    totalMessagesImage, err := iD.getTotalMessagesImage()
-    if err != nil {
-        utils.ERROR("Generating Total Messages Image enocuntered an error. Cannot continue.", "cubecounterimage.toImages")
-        return nil
-    }
+	totalMessagesImage, err := iD.getTotalMessagesImage()
+	if err != nil {
+		utils.ERROR("Generating Total Messages Image enocuntered an error. Cannot continue.", "cubecounterimage.toImages")
+		return nil
+	}
 
-    hourlyActivityImage, err := iD.getHourlyActivityImage()
-    if err != nil {
-        utils.ERROR("Generating Hourly Activity Image enocuntered an error. Cannot continue.", "cubecounterimage.toImages")
-        return nil
-    }
+	hourlyActivityImage, err := iD.getHourlyActivityImage()
+	if err != nil {
+		utils.ERROR("Generating Hourly Activity Image enocuntered an error. Cannot continue.", "cubecounterimage.toImages")
+		return nil
+	}
 
 	var imgs []image.Image
-    imgs = append(imgs, totalMessagesImage)
-    imgs = append(imgs, hourlyActivityImage)
-    return imgs
+	imgs = append(imgs, totalMessagesImage)
+	imgs = append(imgs, hourlyActivityImage)
+	return imgs
 }
 
 func (iD *imageData) toImages() []image.Image {
-    totalMessagesImage, err := iD.getTotalMessagesImage()
-    if err != nil {
-        utils.ERROR("Generating Total Messages Image enocuntered an error. Cannot continue.", "cubecounterimage.toImages")
-        return nil
-    }
+	totalMessagesImage, err := iD.getTotalMessagesImage()
+	if err != nil {
+		utils.ERROR("Generating Total Messages Image enocuntered an error. Cannot continue.", "cubecounterimage.toImages")
+		return nil
+	}
 
-    consecutiveTimeImage, err := iD.getConsecutiveTimeImage()
-    if err != nil {
-        utils.ERROR("Generating Consecutive Time Image enocuntered an error. Cannot continue.", "cubecounterimage.toImages")
-        return nil
-    }
+	consecutiveTimeImage, err := iD.getConsecutiveTimeImage()
+	if err != nil {
+		utils.ERROR("Generating Consecutive Time Image enocuntered an error. Cannot continue.", "cubecounterimage.toImages")
+		return nil
+	}
 
-    roleDistributionImage, err := iD.getRoleDistributionImage()
-    if err != nil {
-        utils.ERROR("Generating Role Distribution Image enocuntered an error. Cannot continue.", "cubecounterimage.toImages")
-        return nil
-    }
+	roleDistributionImage, err := iD.getRoleDistributionImage()
+	if err != nil {
+		utils.ERROR("Generating Role Distribution Image enocuntered an error. Cannot continue.", "cubecounterimage.toImages")
+		return nil
+	}
 
-    hourlyActivityImage, err := iD.getHourlyActivityImage()
-    if err != nil {
-        utils.ERROR("Generating Hourly Activity Image enocuntered an error. Cannot continue.", "cubecounterimage.toImages")
-        return nil
-    }
+	hourlyActivityImage, err := iD.getHourlyActivityImage()
+	if err != nil {
+		utils.ERROR("Generating Hourly Activity Image enocuntered an error. Cannot continue.", "cubecounterimage.toImages")
+		return nil
+	}
 
-    var imgs []image.Image
+	var imgs []image.Image
 	imgs = append(imgs, totalMessagesImage)
 	imgs = append(imgs, consecutiveTimeImage)
 	imgs = append(imgs, roleDistributionImage)
@@ -90,8 +91,8 @@ func (iD *imageData) toImages() []image.Image {
 func (iD *imageData) getTotalMessagesImage() (image.Image, error) {
 	var totalMessagesBars []chart.Value
 	for i, v := range iD.totalMessagesArray {
-        idx := i / utils.Max(len(iD.totalMessagesArray) / 5, 1)
-        val := iD.totalMessages[v]
+		idx := i / utils.Max(len(iD.totalMessagesArray)/5, 1)
+		val := iD.totalMessages[v]
 		totalMessagesBars = append(totalMessagesBars, chart.Value{
 			Label: v,
 			Value: float64(val),
@@ -114,11 +115,11 @@ func (iD *imageData) getTotalMessagesImage() (image.Image, error) {
 		utils.ERROR("Could not collect Total Messages chart:\n"+err.Error(), "cubecounterimage.getTotalMessagesImage")
 		return nil, err
 	}
-    return totalMessagesImage, nil
+	return totalMessagesImage, nil
 }
 
 func (iD *imageData) getConsecutiveTimeImage() (image.Image, error) {
-    var consecutiveTimeBars []chart.Value
+	var consecutiveTimeBars []chart.Value
 	for i, v := range iD.consecutiveTimeArray {
 		consecutiveTimeBars = append(consecutiveTimeBars, chart.Value{
 			Label: v,
@@ -132,7 +133,7 @@ func (iD *imageData) getConsecutiveTimeImage() (image.Image, error) {
 	}
 	consecutiveTimeChart := barChartMaker("Consecutive Time (h)", consecutiveTimeBars)
 	consecutiveTimeCollector := &chart.ImageWriter{}
-    err := consecutiveTimeChart.Render(chart.PNG, consecutiveTimeCollector)
+	err := consecutiveTimeChart.Render(chart.PNG, consecutiveTimeCollector)
 	if err != nil {
 		utils.ERROR("Could not Render Consecutive Time chart:\n"+err.Error(), "cubecounterimage.getConsecutiveTimeImage")
 		return nil, err
@@ -142,11 +143,11 @@ func (iD *imageData) getConsecutiveTimeImage() (image.Image, error) {
 		utils.ERROR("Could not collect Consecutive Time chart:\n"+err.Error(), "cubecounterimage.getConsecutiveTimeImage")
 		return nil, err
 	}
-    return consecutiveTimeImage, nil
+	return consecutiveTimeImage, nil
 }
 
 func (iD *imageData) getRoleDistributionImage() (image.Image, error) {
-    var roleDistributionBars []chart.Value
+	var roleDistributionBars []chart.Value
 	for i, v := range iD.roleDistributionArray {
 		roleDistributionBars = append(roleDistributionBars, chart.Value{
 			Label: v,
@@ -160,7 +161,7 @@ func (iD *imageData) getRoleDistributionImage() (image.Image, error) {
 	}
 	roleDistributionChart := barChartMaker("Role Distribution (%)", roleDistributionBars)
 	roleDistributionCollector := &chart.ImageWriter{}
-    err := roleDistributionChart.Render(chart.PNG, roleDistributionCollector)
+	err := roleDistributionChart.Render(chart.PNG, roleDistributionCollector)
 	if err != nil {
 		utils.ERROR("Could not Render Role Distribution chart:\n"+err.Error(), "cubecounterimage.getRoleDistributionImage")
 		return nil, err
@@ -170,7 +171,7 @@ func (iD *imageData) getRoleDistributionImage() (image.Image, error) {
 		utils.ERROR("Could not collect Role Distribution chart:\n"+err.Error(), "cubecounterimage.getRoleDistributionImage")
 		return nil, err
 	}
-    return roleDistributionImage, nil
+	return roleDistributionImage, nil
 }
 
 func (iD *imageData) getHourlyActivityImage() (image.Image, error) {
@@ -178,7 +179,10 @@ func (iD *imageData) getHourlyActivityImage() (image.Image, error) {
 	min, max := utils.MinMaxOfMap(iD.hourlyActivity)
 	for i := 0; i < 24; i++ {
 		v := iD.hourlyActivity[i]
-		c := 5 - (int(math.Ceil((v - min) / ((max - min) / 5))))
+		c := 5 - int((v-min)/(max-min)*5) - 1
+		if c < 0 {
+			c = 0
+		}
 		hourlyActivityBars = append(hourlyActivityBars, chart.Value{
 			Label: fmt.Sprintf("%d", i),
 			Value: v,
@@ -191,7 +195,7 @@ func (iD *imageData) getHourlyActivityImage() (image.Image, error) {
 	}
 	hourlyActivityChart := barChartMaker("Hourly Activity (%)", hourlyActivityBars)
 	hourlyActivityCollector := &chart.ImageWriter{}
-    err := hourlyActivityChart.Render(chart.PNG, hourlyActivityCollector)
+	err := hourlyActivityChart.Render(chart.PNG, hourlyActivityCollector)
 	if err != nil {
 		utils.ERROR("Could not Render Hourly Activity chart:\n"+err.Error(), "cubecounterimage.getHourlyActivityImage")
 		return nil, err
@@ -201,7 +205,7 @@ func (iD *imageData) getHourlyActivityImage() (image.Image, error) {
 		utils.ERROR("Could not collect Hourly Activity chart:\n"+err.Error(), "cubecounterimage.getHourlyActivityImage")
 		return nil, err
 	}
-    return hourlyActivityImage, nil
+	return hourlyActivityImage, nil
 }
 
 func barChartMaker(title string, bars []chart.Value) chart.BarChart {
