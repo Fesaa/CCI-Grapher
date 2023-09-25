@@ -21,7 +21,7 @@ var roles = map[string]string{
 	"778709973373812737": "Java",
 	"778709999081619486": "Bedrock",
 	"778709940540932106": "Forums",
-	"No Roles":           "No Roles",
+	"No roles":           "No Roles",
 	"Java Only":          "Java Only",
 	"Bedrock Only":       "Bedrock Only",
 	"Dual":               "Dual",
@@ -34,3 +34,4 @@ var roles = map[string]string{
 
 const javaRole string = "778709973373812737"
 const bedrockRole string = "778709999081619486"
+
