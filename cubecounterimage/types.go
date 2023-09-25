@@ -11,7 +11,7 @@ type cubeCounterRequest struct {
 	channelIDs []string
 	startDate  time.Time
 	endDate    time.Time
-    userIDs    []string
+	userIDs    []string
 }
 
 type MessageEntry struct {
@@ -61,6 +61,7 @@ const (
 	ConsecutiveTime
 	RoleDistribution
 	HourlyActivity
+	ChannelTotalMessages
 )
 
 type Message struct {
@@ -116,31 +117,30 @@ func AddRowInfo(msg MessageEntry, activeMembers map[string]ActiveMembersStruct, 
 	var containsJava bool = false
 	var containsBedrock bool = false
 
-    if len(msg.RolesIDs) == 1 {
-        ch <- Message{RoleDistribution, "No roles"}
-    } else {
-        for _, role := range msg.RolesIDs {
-            if _, ok := roles[role]; ok {
-                ch <- Message{RoleDistribution, role}
-            }
-            if role == javaRole {
-                containsJava = true
-            }
-            if role == bedrockRole {
-                containsBedrock = true
-            }
-        }
+	if len(msg.RolesIDs) == 1 {
+		ch <- Message{RoleDistribution, "No roles"}
+	} else {
+		for _, role := range msg.RolesIDs {
+			if _, ok := roles[role]; ok {
+				ch <- Message{RoleDistribution, role}
+			}
+			if role == javaRole {
+				containsJava = true
+			}
+			if role == bedrockRole {
+				containsBedrock = true
+			}
+		}
 
-        if containsJava && !containsBedrock {
-            ch <- Message{RoleDistribution, "Java Only"}
-        } else if !containsJava && containsBedrock {
-            ch <- Message{RoleDistribution, "Bedrock Only"}
-        } else if containsJava && containsBedrock {
-            ch <- Message{RoleDistribution, "Dual"}
-        }
+		if containsJava && !containsBedrock {
+			ch <- Message{RoleDistribution, "Java Only"}
+		} else if !containsJava && containsBedrock {
+			ch <- Message{RoleDistribution, "Bedrock Only"}
+		} else if containsJava && containsBedrock {
+			ch <- Message{RoleDistribution, "Dual"}
+		}
 
-    }
-
+	}
 
 	// hourlyActivity
 	ch <- Message{HourlyActivity, msg.Date.Hour()}

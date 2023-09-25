@@ -16,7 +16,6 @@ func (ccR *cubeCounterRequest) createData(db *db.DataBase) *cubeCounterData {
 	}
 	now := time.Now()
 
-	
 	var out cubeCounterData = GetCubeCounterDate()
 	wg := sync.WaitGroup{}
 	wg.Add(len(ccR.channelIDs))
@@ -28,7 +27,7 @@ func (ccR *cubeCounterRequest) createData(db *db.DataBase) *cubeCounterData {
 	for _, c := range ccR.channelIDs {
 		go ccR.processDB(c, usernames, db, &wg, ch)
 	}
-	
+
 	wg.Wait()
 	close(ch)
 	wg1.Wait()
@@ -37,7 +36,7 @@ func (ccR *cubeCounterRequest) createData(db *db.DataBase) *cubeCounterData {
 }
 
 func (ccr *cubeCounterRequest) processDB(channelID string, userGetter map[string]string,
-										db *db.DataBase, wg *sync.WaitGroup, ch chan Message) {
+	db *db.DataBase, wg *sync.WaitGroup, ch chan Message) {
 	defer wg.Done()
 	var activeMembers = map[string]ActiveMembersStruct{}
 	rowsStart := time.Now()
@@ -63,8 +62,13 @@ func (ccr *cubeCounterRequest) processDB(channelID string, userGetter map[string
 
 	rowsEnd := time.Now()
 	utils.LOGGING(fmt.Sprintf("[%s] Looping over %d rows in %d chunks took: %v", channelID, rowsCounter, chunkCounter, rowsEnd.Sub(rowsStart)), "CCI.processDB")
+	if len(ccr.userIDs) == 1 && rowsCounter > 0 {
+		ch <- Message{
+			cubeCounterDataType: ChannelTotalMessages,
+			data:                []interface{}{channelID, rowsCounter},
+		}
+	}
 }
-
 
 func merger(ch chan Message, out *cubeCounterData, wg *sync.WaitGroup) {
 	defer wg.Done()
@@ -101,6 +105,9 @@ func merger(ch chan Message, out *cubeCounterData, wg *sync.WaitGroup) {
 			} else {
 				out.consecutiveTime[authorID] = append(out.consecutiveTime[authorID], time)
 			}
+		case ChannelTotalMessages:
+			channelName := channels[msg.data.([]interface{})[0].(string)]
+			out.totalMessages[channelName] = msg.data.([]interface{})[1].(int)
 		}
 	}
 }
