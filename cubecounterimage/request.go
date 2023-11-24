@@ -45,13 +45,13 @@ func (ccR *cubeCounterRequest) handleRequest(start time.Time, db *db.DataBase) (
 
 func (ccR *cubeCounterRequest) createEmbed(Author *discordgo.User, elapsed time.Duration) *discordgo.MessageEmbed {
 	description := fmt.Sprintf("Start date: %v %d\nEnd Date: %v %d",
-	ccR.startDate.Month().String(), ccR.startDate.Day(), ccR.endDate.Month().String(), ccR.endDate.Day())
+		ccR.startDate.Month().String(), ccR.startDate.Day(), ccR.endDate.Month().String(), ccR.endDate.Day())
 	if len(ccR.channelIDs) != len(config.Config.ChannelIDs) {
 		description += "\nChannels: " + strings.Join(ccR.channelIDs, ", ")
 	}
 
 	embed := discordgo.MessageEmbed{
-		Title: "Cube Counter Request",
+		Title: "Cube Counter Request <3",
 		Thumbnail: &discordgo.MessageEmbedThumbnail{
 			URL: "https://i.imgur.com/xOWrY8G.png",
 		},
