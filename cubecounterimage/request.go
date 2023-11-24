@@ -51,7 +51,7 @@ func (ccR *cubeCounterRequest) createEmbed(Author *discordgo.User, elapsed time.
 	}
 
 	embed := discordgo.MessageEmbed{
-		Title: "Cube Counter Request <3",
+		Title: "Cube Counter Request",
 		Thumbnail: &discordgo.MessageEmbedThumbnail{
 			URL: "https://i.imgur.com/xOWrY8G.png",
 		},
